@@ -1,0 +1,24 @@
+# .NET
+bin/
+obj/
+appsettings.Development.json
+*.user
+*.suo
+*.userprefs
+.vs/
+.vscode/
+
+# Archivos de entorno
+appsettings.Production.json
+appsettings.Staging.json
+
+# Logs
+logs/
+*.log
+
+# Migrations (opcional - si quieres ignorarlas)
+# Migrations/
+
+# Archivos de base de datos
+*.db
+*.mdf
