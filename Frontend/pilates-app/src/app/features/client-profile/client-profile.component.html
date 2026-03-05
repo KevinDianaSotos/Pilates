@@ -1,0 +1,187 @@
+<div class="profile-container">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>Mi Perfil</h1>
+    <p class="subtitle">Gestiona tu información personal</p>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando tu perfil...</p>
+  </div>
+
+  <!-- Contenido del perfil -->
+  <div *ngIf="!isLoading && perfil" class="profile-content">
+    <!-- Tarjeta de perfil -->
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="profile-avatar">
+          {{ perfil.name.charAt(0) }}
+        </div>
+        <div class="profile-title">
+          <h2>{{ perfil.name }}</h2>
+          <p>{{ perfil.email }}</p>
+        </div>
+        <div class="profile-actions">
+          <button *ngIf="!isEditing && !changingPassword" class="btn-edit" (click)="toggleEdit()">
+            <span class="material-icons">edit</span>
+            Editar perfil
+          </button>
+          <button *ngIf="!isEditing && !changingPassword" class="btn-password" (click)="togglePassword()">
+            <span class="material-icons">lock</span>
+            Cambiar contraseña
+          </button>
+        </div>
+      </div>
+
+      <!-- Formulario de edición -->
+      <div *ngIf="isEditing" class="edit-form">
+        <h3>Editar información</h3>
+        
+        <div class="form-group">
+          <label for="name">Nombre completo</label>
+          <input 
+            type="text" 
+            id="name"
+            [(ngModel)]="editForm.name"
+            placeholder="Tu nombre completo">
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input 
+            type="email" 
+            id="email"
+            [(ngModel)]="editForm.email"
+            placeholder="tu@email.com">
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Teléfono</label>
+          <input 
+            type="tel" 
+            id="phone"
+            [(ngModel)]="editForm.phone"
+            placeholder="+34 123 456 789">
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-save" (click)="guardarPerfil()">
+            <span class="material-icons">save</span>
+            Guardar cambios
+          </button>
+          <button class="btn-cancel" (click)="toggleEdit()">
+            <span class="material-icons">close</span>
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <!-- Formulario de cambio de contraseña -->
+      <div *ngIf="changingPassword" class="password-form">
+        <h3>Cambiar contraseña</h3>
+        
+        <div class="form-group">
+          <label for="passwordActual">Contraseña actual</label>
+          <input 
+            type="password" 
+            id="passwordActual"
+            [(ngModel)]="passwordForm.passwordActual"
+            placeholder="********">
+        </div>
+
+        <div class="form-group">
+          <label for="passwordNueva">Nueva contraseña</label>
+          <input 
+            type="password" 
+            id="passwordNueva"
+            [(ngModel)]="passwordForm.passwordNueva"
+            placeholder="********">
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirmar nueva contraseña</label>
+          <input 
+            type="password" 
+            id="confirmPassword"
+            [(ngModel)]="passwordForm.confirmPassword"
+            placeholder="********">
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-save" (click)="cambiarPassword()">
+            <span class="material-icons">lock</span>
+            Cambiar contraseña
+          </button>
+          <button class="btn-cancel" (click)="togglePassword()">
+            <span class="material-icons">close</span>
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <!-- Información del perfil (vista normal) -->
+      <div *ngIf="!isEditing && !changingPassword" class="profile-info">
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Nombre completo</span>
+            <span class="info-value">{{ perfil.name }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Email</span>
+            <span class="info-value">{{ perfil.email }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Teléfono</span>
+            <span class="info-value">{{ perfil.phone || 'No especificado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Miembro desde</span>
+            <span class="info-value">{{ perfil.fechaRegistro | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tarjeta de membresía -->
+    <div class="membership-card">
+      <h3>
+        <span class="material-icons">card_membership</span>
+        Mi membresía
+      </h3>
+
+      <div *ngIf="perfil.tarifa" class="membership-info">
+        <div class="membership-header">
+          <span class="badge" [style.background]="getEstadoColor(perfil.estadoMembresia)">
+            {{ getEstadoTexto(perfil.estadoMembresia) }}
+          </span>
+          <h4>{{ perfil.tarifa.nombre }}</h4>
+        </div>
+
+        <div class="membership-details">
+          <div class="detail-item">
+            <span class="detail-label">Precio</span>
+            <span class="detail-value">{{ perfil.tarifa.precio | currency:'EUR' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Clases por mes</span>
+            <span class="detail-value">{{ perfil.tarifa.maxClasesMes }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Próximo pago</span>
+            <span class="detail-value">{{ perfil.fechaProximoPago ? (perfil.fechaProximoPago | date:'dd/MM/yyyy') : 'No disponible' }}</span>
+          </div>
+        </div>
+
+        <p class="membership-description">{{ perfil.tarifa.descripcion }}</p>
+      </div>
+
+      <div *ngIf="!perfil.tarifa" class="no-membership">
+        <span class="material-icons">info</span>
+        <p>No tienes ninguna membresía activa</p>
+        <a routerLink="/client/membresia" class="btn-primary">Ver opciones</a>
+      </div>
+    </div>
+  </div>
+</div>

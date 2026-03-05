@@ -1,0 +1,106 @@
+<header class="main-header">
+  <div class="header-left">
+    <button class="menu-toggle" (click)="toggleMenu.emit()" aria-label="Toggle menu">
+      <span class="material-icons">menu</span>
+    </button>
+    
+    <div class="route-info">
+      <span class="current-route">{{ currentRoute }}</span>
+      <span class="route-badge" *ngIf="isAdmin">Admin</span>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <!-- Notifications -->
+    <div class="notifications" [class.active]="showNotifications">
+      <button class="notification-btn" (click)="toggleNotifications()" aria-label="Notificaciones">
+        <span class="material-icons">notifications_none</span>
+        <span class="notification-badge" *ngIf="noLeidas > 0">{{ noLeidas > 9 ? '9+' : noLeidas }}</span>
+      </button>
+      
+      <!-- Notifications Dropdown -->
+      <div class="notifications-dropdown" *ngIf="showNotifications">
+        <div class="dropdown-header">
+          <h4>Notificaciones</h4>
+          <button class="mark-read" (click)="marcarTodasComoLeidas()" *ngIf="noLeidas > 0">
+            Marcar todas como leídas
+          </button>
+        </div>
+        
+        <div class="notifications-list">
+          <div *ngFor="let noti of notificaciones" 
+               class="notification-item" 
+               [class.unread]="!noti.leida"
+               (click)="marcarComoLeida(noti.id, $event)">
+            <div class="notification-icon" [ngClass]="noti.tipo" [style.background]="getColorNotificacion(noti.tipo)">
+              <span class="material-icons">{{ getIconoMaterial(noti.tipo) }}</span>
+            </div>
+            <div class="notification-content">
+              <p class="notification-text">{{ noti.mensaje }}</p>
+              <div class="notification-meta">
+                <span class="notification-time">{{ getTiempoRelativo(noti.fechaCreacion) }}</span>
+                <span class="notification-type" *ngIf="noti.tipo === 'nueva_clase'">Nueva clase</span>
+                <span class="notification-type" *ngIf="noti.tipo === 'clase_eliminada'">Clase cancelada</span>
+                <span class="notification-type" *ngIf="noti.tipo === 'clase_llena'">Clase llena</span>
+                <span class="notification-type" *ngIf="noti.tipo === 'pago_proximo'">Pago próximo</span>
+                <span class="notification-type" *ngIf="noti.tipo === 'pago_vencido'">Pago vencido</span>
+              </div>
+            </div>
+            <button class="notification-close" *ngIf="!noti.leida" (click)="marcarComoLeida(noti.id, $event)">
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+          
+          <!-- Empty state -->
+          <div *ngIf="notificaciones.length === 0" class="no-notifications">
+            <span class="material-icons">notifications_none</span>
+            <p>No hay notificaciones</p>
+          </div>
+        </div>
+        
+        <div class="dropdown-footer" *ngIf="notificaciones.length > 0">
+          <a href="javascript:void(0)" (click)="verTodasLasNotificaciones()">Ver todas las notificaciones</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Profile -->
+    <div class="user-profile" [class.open]="showUserMenu" (click)="toggleUserMenu()">
+      <div class="profile-trigger">
+        <div class="user-info" *ngIf="user$ | async as user">
+          <p class="user-name">{{ user.name }}</p>
+          <p class="user-role">{{ user.role }}</p>
+        </div>
+        <div class="avatar" *ngIf="user$ | async as user">
+          {{ user.name.charAt(0) || 'U' }}
+        </div>
+        <span class="material-icons dropdown-icon">arrow_drop_down</span>
+      </div>
+
+      <!-- User Dropdown Menu -->
+      <div class="user-dropdown" *ngIf="showUserMenu">
+        <div class="dropdown-user-info" *ngIf="user$ | async as user">
+          <div class="dropdown-avatar">{{ user.name.charAt(0) || 'U' }}</div>
+          <div class="dropdown-user-details">
+            <p class="dropdown-user-name">{{ user.name }}</p>
+            <p class="dropdown-user-email">{{ user.email }}</p>
+          </div>
+        </div>
+        
+        <div class="dropdown-divider"></div>
+        
+        <a routerLink="/admin/perfil" class="dropdown-item" (click)="showUserMenu = false">
+          <span class="material-icons">person</span>
+          <span>Mi Perfil</span>
+        </a>
+        
+        <div class="dropdown-divider"></div>
+        
+        <button class="dropdown-item logout" (click)="logout()">
+          <span class="material-icons">logout</span>
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>

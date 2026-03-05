@@ -1,0 +1,136 @@
+<header class="client-header">
+  <div class="header-container">
+    <!-- Logo y nombre -->
+    <div class="header-left">
+      <a routerLink="/client/dashboard" class="logo">
+        <span class="logo-icon">P</span>
+        <span class="logo-text">Pilates<span>RyM</span></span>
+      </a>
+    </div>
+
+    <!-- Navegación principal -->
+    <nav class="header-nav">
+      <a routerLink="/client/dashboard" 
+         routerLinkActive="active"
+         class="nav-link">
+        <span class="material-icons">dashboard</span>
+        <span>Inicio</span>
+      </a>
+      <a routerLink="/client/calendario" 
+         routerLinkActive="active"
+         class="nav-link">
+        <span class="material-icons">calendar_today</span>
+        <span>Clases</span>
+      </a>
+      <a routerLink="/client/reservas" 
+         routerLinkActive="active"
+         class="nav-link">
+        <span class="material-icons">bookmark</span>
+        <span>Mis reservas</span>
+      </a>
+    </nav>
+
+    <!-- Perfil y menú -->
+    <div class="header-right">
+      <!-- Notificaciones -->
+      <div class="notifications" [class.active]="showNotifications">
+        <button class="notification-btn" (click)="toggleNotifications()">
+          <span class="material-icons">notifications_none</span>
+          <span class="notification-badge" *ngIf="notificacionesNoLeidas > 0">
+            {{ notificacionesNoLeidas > 9 ? '9+' : notificacionesNoLeidas }}
+          </span>
+        </button>
+
+        <!-- Dropdown de notificaciones -->
+        <div class="notifications-dropdown" *ngIf="showNotifications">
+          <div class="dropdown-header">
+            <h4>Notificaciones</h4>
+            <button class="mark-read" (click)="marcarTodasComoLeidas()" *ngIf="notificacionesNoLeidas > 0">
+              Marcar todas
+            </button>
+          </div>
+
+          <div class="notifications-list">
+            <div *ngFor="let noti of notificaciones" 
+                 class="notification-item" 
+                 [class.unread]="!noti.leida"
+                 (click)="irANotificacion(noti)">
+              <div class="notification-icon" [style.background]="getColorNotificacion(noti.tipo)">
+                <span class="emoji">{{ getIconoNotificacion(noti.tipo) }}</span>
+              </div>
+              <div class="notification-content">
+                <p class="notification-text">{{ noti.mensaje }}</p>
+                <div class="notification-meta">
+                  <span class="notification-time">{{ getTiempoRelativo(noti.fechaCreacion) }}</span>
+                  <span class="notification-type" *ngIf="noti.tipo === 'nueva_clase'">Nueva clase</span>
+                  <span class="notification-type" *ngIf="noti.tipo === 'pago_proximo'">Pago próximo</span>
+                  <span class="notification-type" *ngIf="noti.tipo === 'pago_vencido'">Pago vencido</span>
+                </div>
+              </div>
+              <button class="notification-close" *ngIf="!noti.leida" (click)="marcarComoLeida(noti.id, $event)">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+
+            <div *ngIf="notificaciones.length === 0" class="no-notifications">
+              <span class="material-icons">notifications_none</span>
+              <p>No hay notificaciones</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Menú de usuario -->
+      <div class="user-menu" [class.open]="showUserMenu">
+        <button class="user-btn" (click)="toggleUserMenu()">
+          <div class="user-avatar">
+            {{ user?.name?.charAt(0) || 'U' }}
+          </div>
+          <span class="user-name">{{ user?.name || 'Usuario' }}</span>
+          <span class="material-icons">arrow_drop_down</span>
+        </button>
+
+        <div class="user-dropdown" *ngIf="showUserMenu">
+          <a routerLink="/client/perfil" class="dropdown-item" (click)="showUserMenu = false">
+            <span class="material-icons">person</span>
+            Mi Perfil
+          </a>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item logout" (click)="logout()">
+            <span class="material-icons">logout</span>
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+
+      <!-- Menú móvil -->
+      <button class="mobile-menu-btn" (click)="toggleMobileMenu()">
+        <span class="material-icons">menu</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Menú móvil desplegable -->
+  <div class="mobile-menu" *ngIf="showMobileMenu">
+    <a routerLink="/client/dashboard" (click)="closeMobileMenu()">
+      <span class="material-icons">dashboard</span>
+      Inicio
+    </a>
+    <a routerLink="/client/calendario" (click)="closeMobileMenu()">
+      <span class="material-icons">calendar_today</span>
+      Clases
+    </a>
+    <a routerLink="/client/reservas" (click)="closeMobileMenu()">
+      <span class="material-icons">bookmark</span>
+      Mis reservas
+    </a>
+    <a routerLink="/client/perfil" (click)="closeMobileMenu()">
+      <span class="material-icons">person</span>
+      Perfil
+    </a>
+    <button class="logout" (click)="logout()">
+      <span class="material-icons">logout</span>
+      Cerrar sesión
+    </button>
+  </div>
+</header>

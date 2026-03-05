@@ -1,0 +1,424 @@
+<div class="admin-calendar">
+  <!-- Header con acciones -->
+  <div class="calendar-header">
+    <h1>Gestión de clases</h1>
+    <p class="subtitle">Administra todas las clases del estudio</p>
+    <button class="btn-primary btn-create" (click)="abrirModalCrear()">
+      <span class="material-icons">add</span>
+      Nueva clase
+    </button>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando calendario...</p>
+  </div>
+
+  <!-- Calendario -->
+  <div *ngIf="!isLoading" class="calendar-wrapper">
+    <full-calendar [options]="calendarOptions"></full-calendar>
+  </div>
+
+  <!-- Leyenda de colores -->
+  <div class="legend">
+    <div class="legend-item">
+      <span class="color-dot available"></span>
+      <span>Disponible</span>
+    </div>
+    <div class="legend-item">
+      <span class="color-dot almost-full"></span>
+      <span>Pocas plazas</span>
+    </div>
+    <div class="legend-item">
+      <span class="color-dot full"></span>
+      <span>Completo</span>
+    </div>
+  </div>
+</div>
+
+<!-- Modal CREAR CLASE - VERSIÓN CORREGIDA -->
+<div *ngIf="showCreateModal" class="modal-backdrop" (click)="cerrarModalCrear()">
+  <div class="modal-card modal-create" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="header-title">
+        <span class="header-icon">📅</span>
+        <h3>Crear nueva clase</h3>
+      </div>
+      <button class="modal-close" (click)="cerrarModalCrear()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <p class="form-intro">Completa los datos para programar una nueva clase de Pilates</p>
+
+      <form (ngSubmit)="crearClase()" class="modal-form">
+        <!-- Fecha y hora -->
+        <div class="form-group">
+          <label>
+            <span class="material-icons">event</span>
+            Fecha y hora
+          </label>
+          <input 
+            type="datetime-local" 
+            [(ngModel)]="nuevaClase.fecha" 
+            name="fecha" 
+            required 
+            class="form-control"
+          />
+          <small class="field-hint">Elige el día y hora de la clase</small>
+        </div>
+
+        <!-- Fila para Duración y Capacidad -->
+        <div class="form-row">
+          <!-- Duración -->
+          <div class="form-group">
+            <label>
+              <span class="material-icons">hourglass_empty</span>
+              Duración
+            </label>
+            <div class="input-group">
+              <input 
+                type="number" 
+                [(ngModel)]="nuevaClase.duracion" 
+                name="duracion" 
+                min="15" 
+                step="15" 
+                required 
+                class="form-control"
+              />
+              <span class="input-suffix">min</span>
+            </div>
+          </div>
+
+          <!-- Capacidad -->
+          <div class="form-group">
+            <label>
+              <span class="material-icons">groups</span>
+              Capacidad
+            </label>
+            <div class="input-group">
+              <input 
+                type="number" 
+                [(ngModel)]="nuevaClase.capacidad" 
+                name="capacidad" 
+                min="1" 
+                required 
+                class="form-control"
+              />
+              <span class="input-suffix">pers</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Instructor -->
+        <div class="form-group">
+          <label>
+            <span class="material-icons">person</span>
+            Instructor
+          </label>
+          <div class="select-wrapper">
+            <select [(ngModel)]="nuevaClase.instructorId" name="instructor" required class="form-control">
+              <option value="" disabled selected>Seleccionar instructor</option>
+              <option *ngFor="let instructor of instructores" [value]="instructor.id">
+                {{ instructor.name }}
+              </option>
+            </select>
+            <span class="select-arrow">▼</span>
+          </div>
+        </div>
+
+        <!-- Mensaje de error -->
+        <div *ngIf="errorMessage" class="error-message">
+          <span class="material-icons">error</span>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <!-- Botones -->
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary" [disabled]="isLoading">
+            <span *ngIf="!isLoading">
+              <span class="material-icons">add</span>
+              Crear clase
+            </span>
+            <span *ngIf="isLoading" class="spinner-small"></span>
+          </button>
+          <button type="button" class="btn-secondary" (click)="cerrarModalCrear()">
+            <span class="material-icons">close</span>
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal DETALLES DE CLASE -->
+<div *ngIf="showDetailsModal && selectedClase" class="modal-backdrop" (click)="cerrarModalDetalles()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Detalles de la clase</h3>
+      <button class="modal-close" (click)="cerrarModalDetalles()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="clase-detalle">
+        <div class="detalle-item">
+          <span class="material-icons">event</span>
+          <span>{{ selectedClase.fecha | date:'EEEE, d MMMM yyyy' }}</span>
+        </div>
+        <div class="detalle-item">
+          <span class="material-icons">schedule</span>
+          <span>{{ selectedClase.fecha | date:'HH:mm' }} ({{ selectedClase.duracion }} minutos)</span>
+        </div>
+        <div class="detalle-item">
+          <span class="material-icons">person</span>
+          <span>Instructor/a: {{ selectedClase.instructor }}</span>
+        </div>
+        <div class="detalle-item">
+          <span class="material-icons">people</span>
+          <span>Plazas: {{ selectedClase.reservadas }}/{{ selectedClase.capacidad }}</span>
+        </div>
+        <div class="disponibilidad" [class.pocas]="selectedClase.plazasLibres <= 2" [class.lleno]="selectedClase.plazasLibres === 0">
+          <span class="material-icons">
+            {{ selectedClase.plazasLibres === 0 ? 'block' : (selectedClase.plazasLibres <= 2 ? 'warning' : 'check_circle') }}
+          </span>
+          <span>
+            {{ selectedClase.plazasLibres === 0 ? 'Clase completa' : selectedClase.plazasLibres + ' plazas disponibles' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Sección de clientes para admin -->
+      <div class="clientes-section">
+        <h4>
+          <span class="material-icons">people</span>
+          Clientes ({{ clientesPorClase.length }}/{{ selectedClase.capacidad }})
+        </h4>
+        
+        <button class="btn-add-client" (click)="abrirModalAsignar()">
+          <span class="material-icons">person_add</span>
+          Añadir cliente
+        </button>
+
+        <div class="clientes-list" *ngIf="clientesPorClase.length > 0">
+          <div *ngFor="let cliente of clientesPorClase" class="cliente-item">
+            <div class="cliente-avatar">{{ cliente.cliente?.charAt(0) || '?' }}</div>
+            <span class="cliente-nombre">{{ cliente.cliente }}</span>
+          </div>
+        </div>
+        
+        <div *ngIf="clientesPorClase.length === 0" class="no-clientes">
+          <span class="material-icons">person_off</span>
+          <p>No hay clientes apuntados</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-primary" (click)="abrirModalEditar()">
+        <span class="material-icons">edit</span>
+        Editar
+      </button>
+      <button class="btn-warning" (click)="eliminarClase()">
+        <span class="material-icons">delete</span>
+        Eliminar
+      </button>
+      <button class="btn-secondary" (click)="cerrarModalDetalles()">
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal EDITAR CLASE - VERSIÓN CORREGIDA -->
+<div *ngIf="showEditModal && selectedClase" class="modal-backdrop" (click)="cerrarModalEditar()">
+  <div class="modal-card modal-edit" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="header-title">
+        <span class="header-icon">✏️</span>
+        <h3>Editar clase</h3>
+      </div>
+      <button class="modal-close" (click)="cerrarModalEditar()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <p class="form-intro">Modifica los datos de la clase de Pilates</p>
+
+      <form (ngSubmit)="actualizarClase()" class="modal-form">
+        <!-- Fecha y hora -->
+        <div class="form-group">
+          <label>
+            <span class="material-icons">event</span>
+            Fecha y hora
+          </label>
+          <input 
+            type="datetime-local" 
+            [(ngModel)]="editarClase.fecha" 
+            name="fecha" 
+            required 
+            class="form-control"
+          />
+          <small class="field-hint">Modifica el día y hora de la clase</small>
+        </div>
+
+        <!-- Fila para Duración y Capacidad -->
+        <div class="form-row">
+          <!-- Duración -->
+          <div class="form-group">
+            <label>
+              <span class="material-icons">hourglass_empty</span>
+              Duración
+            </label>
+            <div class="input-group">
+              <input 
+                type="number" 
+                [(ngModel)]="editarClase.duracion" 
+                name="duracion" 
+                min="15" 
+                step="15" 
+                required 
+                class="form-control"
+              />
+              <span class="input-suffix">min</span>
+            </div>
+          </div>
+
+          <!-- Capacidad -->
+          <div class="form-group">
+            <label>
+              <span class="material-icons">groups</span>
+              Capacidad
+            </label>
+            <div class="input-group">
+              <input 
+                type="number" 
+                [(ngModel)]="editarClase.capacidad" 
+                name="capacidad" 
+                min="1" 
+                required 
+                class="form-control"
+              />
+              <span class="input-suffix">pers</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Instructor -->
+        <div class="form-group">
+          <label>
+            <span class="material-icons">person</span>
+            Instructor
+          </label>
+          <div class="select-wrapper">
+            <select [(ngModel)]="editarClase.instructorId" name="instructor" required class="form-control">
+              <option *ngFor="let instructor of instructores" [value]="instructor.id">
+                {{ instructor.name }}
+              </option>
+            </select>
+            <span class="select-arrow">▼</span>
+          </div>
+        </div>
+
+        <!-- Información de ocupación actual -->
+        <div class="info-box" *ngIf="selectedClase">
+          <div class="info-row">
+            <span class="info-label">Ocupación actual:</span>
+            <span class="info-value">{{ selectedClase.reservadas }} / {{ selectedClase.capacidad }}</span>
+          </div>
+          <div *ngIf="selectedClase.reservadas > editarClase.capacidad" class="warning-message">
+            <span class="material-icons">warning</span>
+            <span>La nueva capacidad es menor que la ocupación actual</span>
+          </div>
+        </div>
+
+        <!-- Mensaje de error -->
+        <div *ngIf="errorMessage" class="error-message">
+          <span class="material-icons">error</span>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <!-- Botones -->
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary" [disabled]="isLoading">
+            <span *ngIf="!isLoading">
+              <span class="material-icons">save</span>
+              Actualizar clase
+            </span>
+            <span *ngIf="isLoading" class="spinner-small"></span>
+          </button>
+          <button type="button" class="btn-secondary" (click)="cerrarModalEditar()">
+            <span class="material-icons">close</span>
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal ASIGNAR CLIENTE - VERSIÓN CORREGIDA -->
+<div *ngIf="showAsignarModal && selectedClase" class="modal-backdrop" (click)="cerrarModalAsignar()">
+  <div class="modal-card modal-assign" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="header-title">
+        <span class="header-icon">👥</span>
+        <h3>Añadir cliente a la clase</h3>
+      </div>
+      <button class="modal-close" (click)="cerrarModalAsignar()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Info de la clase (contexto) -->
+      <div class="class-context" *ngIf="selectedClase">
+        <div class="context-item">
+          <span class="material-icons">event</span>
+          <span>{{ selectedClase.fecha | date:'EEEE, d MMMM' }}</span>
+        </div>
+        <div class="context-item">
+          <span class="material-icons">schedule</span>
+          <span>{{ selectedClase.fecha | date:'HH:mm' }} ({{ selectedClase.duracion }} min)</span>
+        </div>
+        <div class="context-item">
+          <span class="material-icons">person</span>
+          <span>{{ selectedClase.instructor }}</span>
+        </div>
+        <div class="context-item availability">
+          <span class="material-icons">people</span>
+          <span>Plazas disponibles: {{ selectedClase.plazasLibres }}</span>
+        </div>
+      </div>
+
+      <!-- Selector de cliente -->
+      <div class="form-group">
+        <label>
+          <span class="material-icons">search</span>
+          Seleccionar cliente
+        </label>
+        <div class="select-wrapper">
+          <select [(ngModel)]="clienteSeleccionado" class="form-control">
+            <option value="" disabled selected>-- Selecciona un cliente --</option>
+            <option *ngFor="let cliente of clientesDisponibles" [value]="cliente.id">
+              {{ cliente.name }} — {{ cliente.email }}
+            </option>
+          </select>
+          <span class="select-arrow">▼</span>
+        </div>
+        <small class="field-hint" *ngIf="clientesDisponibles.length === 0">
+          No hay clientes disponibles para añadir
+        </small>
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="modal-actions">
+      <button class="btn-primary" (click)="asignarCliente()" [disabled]="!clienteSeleccionado">
+        <span class="material-icons">person_add</span>
+        Añadir cliente
+      </button>
+      <button class="btn-secondary" (click)="cerrarModalAsignar()">
+        <span class="material-icons">close</span>
+        Cancelar
+      </button>
+    </div>
+  </div>
+</div>

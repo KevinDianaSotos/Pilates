@@ -1,0 +1,79 @@
+<!-- client-calendar.component.html -->
+<div class="calendar-container">
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando calendario...</p>
+  </div>
+
+  <!-- Calendario -->
+  <div *ngIf="!isLoading" class="calendar-wrapper">
+    <full-calendar [options]="calendarOptions"></full-calendar>
+  </div>
+
+  <!-- Leyenda de colores -->
+  <div class="legend">
+    <div class="legend-item">
+      <span class="color-dot available"></span>
+      <span>Disponible</span>
+    </div>
+    <div class="legend-item">
+      <span class="color-dot almost-full"></span>
+      <span>Pocas plazas</span>
+    </div>
+    <div class="legend-item">
+      <span class="color-dot full"></span>
+      <span>Completo</span>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de reserva (igual que antes) -->
+<div *ngIf="showModal && selectedClase" class="modal-backdrop" (click)="cerrarModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Reservar clase</h3>
+      <button class="modal-close" (click)="cerrarModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="clase-detalle">
+        <div class="detalle-item">
+          <span class="material-icons">event</span>
+          <span>{{ selectedClase.fecha | date:'EEEE, d MMMM yyyy' }}</span>
+        </div>
+        <div class="detalle-item">
+          <span class="material-icons">schedule</span>
+          <span>{{ selectedClase.fecha | date:'HH:mm' }} ({{ selectedClase.duracion }} minutos)</span>
+        </div>
+        <div class="detalle-item">
+          <span class="material-icons">person</span>
+          <span>Instructor/a: {{ selectedClase.instructor }}</span>
+        </div>
+        <div class="detalle-item">
+          <span class="material-icons">people</span>
+          <span>Plazas: {{ selectedClase.reservadas }}/{{ selectedClase.capacidad }}</span>
+        </div>
+        <div class="disponibilidad" [class.pocas]="selectedClase.plazasLibres <= 2" [class.lleno]="selectedClase.plazasLibres === 0">
+          <span class="material-icons">
+            {{ selectedClase.plazasLibres === 0 ? 'block' : (selectedClase.plazasLibres <= 2 ? 'warning' : 'check_circle') }}
+          </span>
+          <span>
+            {{ selectedClase.plazasLibres === 0 ? 'Clase completa' : selectedClase.plazasLibres + ' plazas disponibles' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-primary" 
+              (click)="reservarClase()"
+              [disabled]="selectedClase.plazasLibres === 0">
+        Confirmar reserva
+      </button>
+      <button class="btn-secondary" (click)="cerrarModal()">
+        Cancelar
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,58 @@
+<div class="login-container">
+
+  <!-- IZQUIERDA: HERO -->
+  <div class="hero-section">
+    <div class="overlay"></div>
+
+    <!-- TEXTO ABAJO IZQUIERDA -->
+    <div class="hero-content bottom-left">
+      <h1>Studios RyM</h1>
+      <p>Equilibrio · Fuerza · Bienestar</p>
+    </div>
+  </div>
+
+  <!-- DERECHA: LOGIN -->
+  <div class="form-section">
+    <mat-card class="login-card">
+
+      <!-- LOGO -->
+      <img
+        src="assets/logoBlanco.png"
+        alt="Pilates Studio"
+        class="logo"
+      />
+
+      <h2 class="title">Acceso al estudio</h2>
+      <p class="subtitle">Reserva y gestiona tus sesiones</p>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+        <!-- EMAIL -->
+        <mat-form-field appearance="fill" class="full-width dark-field">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" type="email" required />
+        </mat-form-field>
+
+        <!-- PASSWORD -->
+        <mat-form-field appearance="fill" class="full-width dark-field">
+          <mat-label>Contraseña</mat-label>
+          <input matInput formControlName="password" type="password" required />
+        </mat-form-field>
+
+        <!-- BUTTON -->
+        <button
+          mat-raised-button
+          color="primary"
+          class="login-button"
+          type="submit"
+          [disabled]="loading"
+        >
+          {{ loading ? 'Accediendo...' : 'Entrar' }}
+        </button>
+
+      </form>
+
+    </mat-card>
+  </div>
+
+</div>

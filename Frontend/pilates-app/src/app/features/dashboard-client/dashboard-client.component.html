@@ -1,0 +1,178 @@
+<div class="client-dashboard">
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando tu dashboard...</p>
+  </div>
+
+  <!-- Contenido principal -->
+  <div *ngIf="!isLoading" class="dashboard-content">
+    <!-- Header de bienvenida -->
+    <div class="welcome-section">
+      <div class="welcome-text">
+        <h1>¡Hola, {{ user?.name || 'Cliente' }}! 👋</h1>
+        <p class="welcome-subtitle">{{ obtenerSaludo() }}</p>
+      </div>
+      
+      <div class="membresia-indicator">
+        <div class="membresia-badge" [style.background]="getEstadoColor(stats.estadoMembresia)">
+          <span class="material-icons">{{ getIconoEstado(stats.estadoMembresia) }}</span>
+          <span>{{ stats.estadoMembresia }}</span>
+        </div>
+        <span *ngIf="stats.diasRestantes > 0" class="dias-restantes">
+          {{ stats.diasRestantes }} días restantes
+        </span>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon upcoming">
+          <span class="material-icons">event</span>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats.proximasClases }}</span>
+          <span class="stat-label">Próximas clases</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon total">
+          <span class="material-icons">fitness_center</span>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats.totalClases }}</span>
+          <span class="stat-label">Clases totales</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon attended">
+          <span class="material-icons">check_circle</span>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats.clasesAsistidas }}</span>
+          <span class="stat-label">Clases asistidas</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon month">
+          <span class="material-icons">calendar_month</span>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats.clasesEsteMes }}</span>
+          <span class="stat-label">Clases este mes</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="dashboard-grid">
+      <!-- Próximas clases -->
+      <div class="dashboard-card">
+        <div class="card-header">
+          <h2>
+            <span class="material-icons">upcoming</span>
+            Próximas clases
+          </h2>
+          <a routerLink="/client/calendario" class="view-all">
+            Ver todas
+            <span class="material-icons">arrow_forward</span>
+          </a>
+        </div>
+
+        <div class="card-content">
+          <div *ngIf="proximasClases.length === 0" class="empty-state">
+            <span class="material-icons">event_busy</span>
+            <p>No tienes clases próximas</p>
+            <a routerLink="/client/calendario" class="btn-primary">
+              Reservar ahora
+            </a>
+          </div>
+
+          <div *ngFor="let clase of proximasClases" class="clase-item">
+            <div class="clase-info">
+              <div class="clase-fecha">
+                <span class="dia">{{ clase.fecha | date:'dd' }}</span>
+                <span class="mes">{{ clase.fecha | date:'MMM' }}</span>
+              </div>
+              <div class="clase-detalle">
+                <h3>Pilates con {{ clase.instructor }}</h3>
+                <div class="clase-meta">
+                  <span>
+                    <span class="material-icons">schedule</span>
+                    {{ clase.fecha | date:'HH:mm' }} ({{ clase.duracion }} min)
+                  </span>
+                  <span>
+                    <span class="material-icons">people</span>
+                    {{ clase.plazasLibres }} plazas libres
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Últimas clases -->
+      <div class="dashboard-card">
+        <div class="card-header">
+          <h2>
+            <span class="material-icons">history</span>
+            Últimas clases
+          </h2>
+          <a routerLink="/client/reservas" class="view-all">
+            Ver historial
+            <span class="material-icons">arrow_forward</span>
+          </a>
+        </div>
+
+        <div class="card-content">
+          <div *ngIf="ultimasClases.length === 0" class="empty-state">
+            <span class="material-icons">event_note</span>
+            <p>No tienes clases anteriores</p>
+          </div>
+
+          <div *ngFor="let clase of ultimasClases" class="clase-item historial">
+            <div class="clase-info">
+              <div class="clase-fecha historial">
+                <span class="dia">{{ clase.fecha | date:'dd' }}</span>
+                <span class="mes">{{ clase.fecha | date:'MMM' }}</span>
+              </div>
+              <div class="clase-detalle">
+                <h3>Pilates con {{ clase.instructor }}</h3>
+                <div class="clase-meta">
+                  <span>{{ clase.fecha | date:'HH:mm' }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="asistencia-badge" [class.asistio]="clase.atendio">
+              {{ clase.atendio ? 'Asistió ✅' : 'No asistió ❌' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="quick-actions">
+      <h3>Acciones rápidas</h3>
+      <div class="actions-grid">
+        <a routerLink="/client/calendario" class="action-card">
+          <span class="material-icons">calendar_month</span>
+          <span>Reservar clase</span>
+        </a>
+        <a routerLink="/client/reservas" class="action-card">
+          <span class="material-icons">bookmark</span>
+          <span>Mis reservas</span>
+        </a>
+        <a routerLink="/client/perfil" class="action-card">
+          <span class="material-icons">person</span>
+          <span>Mi perfil</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

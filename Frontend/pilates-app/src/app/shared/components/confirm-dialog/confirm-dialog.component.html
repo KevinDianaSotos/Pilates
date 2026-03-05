@@ -1,0 +1,43 @@
+<!-- confirm-dialog.component.html -->
+<div *ngIf="dialog$ | async as dialog" class="dialog-backdrop" (click)="onBackdropClick()">
+  <div class="dialog-card" [ngClass]="dialog.type || 'warning'" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <div class="header-left">
+        <span class="dialog-icon">{{ getIcon(dialog.type) }}</span>
+        <h3>{{ dialog.title }}</h3>
+      </div>
+      <button class="close-btn" (click)="close({ confirmed: false })">×</button>
+    </div>
+    
+    <div class="dialog-body">
+      <p>{{ dialog.message }}</p>
+      
+      <!-- Selector de opciones si existen -->
+      <div *ngIf="dialog.options && dialog.options.length > 0" class="options-container">
+        <label>Método de pago:</label>
+        <div class="options-grid">
+          <button *ngFor="let option of dialog.options" 
+                  type="button"
+                  class="option-btn"
+                  [class.selected]="selectedOption === option.value"
+                  (click)="selectOption(option.value)">
+            <span class="option-icon">{{ option.icon }}</span>
+            <span class="option-label">{{ option.label }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="dialog-footer">
+      <button class="btn-cancel" (click)="close({ confirmed: false })">
+        {{ dialog.cancelText || 'Cancelar' }}
+      </button>
+      <button class="btn-confirm" 
+              [ngClass]="dialog.type || 'warning'"
+              [disabled]="dialog.options && !selectedOption"
+              (click)="confirm()">
+        {{ dialog.confirmText || 'Confirmar' }}
+      </button>
+    </div>
+  </div>
+</div>

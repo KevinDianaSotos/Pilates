@@ -1,0 +1,122 @@
+/* GRID PRINCIPAL */
+.login-container {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background-color: #0f0f0f;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------- HERO ---------------- */
+.hero-section {
+  position: relative;
+  background-image: url('https://images.unsplash.com/photo-1607962837359-5e7e89f86776');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end;
+  padding: 50px;
+
+  @media (max-width: 900px) {
+    display: none;
+  }
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.75),
+    rgba(0, 0, 0, 0.3)
+  );
+  backdrop-filter: blur(2px);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  color: white;
+}
+
+.hero-content h1 {
+  font-size: 2.8rem;
+  font-weight: 600;
+}
+
+.hero-content p {
+  margin-top: 8px;
+  font-size: 1.2rem;
+  color: #d1d5db;
+}
+
+/* ---------------- FORM ---------------- */
+.form-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 32px !important;
+  border-radius: 20px;
+  background: #1a1a1a !important;
+  color: white !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Logo */
+.logo {
+  display: block;
+  margin: 0 auto 20px;
+  height: 55px;
+}
+
+/* Titles */
+.title {
+  text-align: center;
+  font-size: 1.7rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  text-align: center;
+  color: #9ca3af;
+  margin-bottom: 28px;
+}
+
+/* Inputs */
+.dark-field.mat-mdc-form-field {
+  --mdc-filled-text-field-fill-color: #111111;
+  --mdc-filled-text-field-focus-active-indicator-color: #6ee7b7;
+  --mdc-filled-text-field-hover-active-indicator-color: #6ee7b7;
+  --mdc-filled-text-field-active-indicator-color: #2d2d2d;
+  --mdc-filled-text-field-label-text-color: #9ca3af;
+  --mdc-filled-text-field-focus-label-text-color: #6ee7b7;
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* Botón Pilates (verde suave) */
+.login-button {
+  width: 100%;
+  background-color: #6ee7b7 !important;
+  color: #0f172a !important;
+  margin-top: 22px;
+  padding: 12px 0;
+  font-weight: 600;
+  border-radius: 10px;
+
+  &:hover {
+    background-color: #34d399 !important;
+  }
+}

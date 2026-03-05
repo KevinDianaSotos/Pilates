@@ -1,0 +1,207 @@
+/* confirm-dialog.component.scss */
+.dialog-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  backdrop-filter: blur(3px);
+  animation: fadeIn 0.2s;
+}
+
+.dialog-card {
+  background: white;
+  border-radius: 1rem;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s;
+
+  &.warning .dialog-header {
+    border-left: 4px solid #f39c12;
+  }
+  &.danger .dialog-header {
+    border-left: 4px solid #e74c3c;
+  }
+  &.info .dialog-header {
+    border-left: 4px solid #3498db;
+  }
+  &.success .dialog-header {
+    border-left: 4px solid #2ecc71;
+  }
+}
+
+.dialog-header {
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f0f0f0;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .dialog-icon {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #333;
+    font-weight: 600;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #999;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #f5f5f5;
+      color: #333;
+    }
+  }
+}
+
+.dialog-body {
+  padding: 1.5rem;
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+    color: #666;
+    line-height: 1.5;
+  }
+}
+
+.dialog-footer {
+  padding: 1rem 1.5rem 1.5rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+
+  button {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &.btn-cancel {
+      background: #f5f5f5;
+      color: #666;
+
+      &:hover {
+        background: #e8e8e8;
+      }
+    }
+
+    &.btn-confirm {
+      color: white;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      &.warning { background: #f39c12; }
+      &.danger { background: #e74c3c; }
+      &.info { background: #3498db; }
+      &.success { background: #2ecc71; }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* confirm-dialog.component.scss */
+.options-container {
+  margin-top: 1.5rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.8rem;
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+  }
+}
+
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.8rem;
+}
+
+.option-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 1rem 0.5rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 0.5rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #999;
+    background: #f5f5f5;
+  }
+
+  &.selected {
+    border-color: #ce2727;
+    background: rgba(206, 39, 39, 0.05);
+  }
+
+  .option-icon {
+    font-size: 1.5rem;
+  }
+
+  .option-label {
+    font-size: 0.8rem;
+    color: #333;
+    font-weight: 500;
+  }
+}
+
+.btn-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}

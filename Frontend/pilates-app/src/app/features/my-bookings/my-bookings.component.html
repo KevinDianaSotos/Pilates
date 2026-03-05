@@ -1,0 +1,123 @@
+<div class="my-bookings">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-title">
+      <h1>Mis reservas</h1>
+      <p class="subtitle">Gestiona tus clases reservadas</p>
+    </div>
+    <a routerLink="/client/calendario" class="btn-primary">
+      <span class="material-icons">add</span>
+      Reservar nueva clase
+    </a>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon upcoming">
+        <span class="material-icons">upcoming</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.proximas }}</span>
+        <span class="stat-label">Próximas clases</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon total">
+        <span class="material-icons">event</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.total }}</span>
+        <span class="stat-label">Total reservas</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon attended">
+        <span class="material-icons">check_circle</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.asistidas }}</span>
+        <span class="stat-label">Clases asistidas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-section">
+    <div class="filter-tabs">
+      <button 
+        class="filter-btn" 
+        [class.active]="filtroActual === 'proximas'"
+        (click)="cambiarFiltro('proximas')">
+        Próximas
+      </button>
+      <button 
+        class="filter-btn" 
+        [class.active]="filtroActual === 'pasadas'"
+        (click)="cambiarFiltro('pasadas')">
+        Pasadas
+      </button>
+      <button 
+        class="filter-btn" 
+        [class.active]="filtroActual === 'todas'"
+        (click)="cambiarFiltro('todas')">
+        Todas
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando tus reservas...</p>
+  </div>
+
+  <!-- Lista de reservas -->
+  <div *ngIf="!isLoading" class="bookings-list">
+    <div *ngIf="reservasFiltradas.length === 0" class="empty-state">
+      <span class="material-icons">event_busy</span>
+      <h3>No hay reservas</h3>
+      <p>No tienes clases reservadas en esta categoría</p>
+      <a routerLink="/client/calendario" class="btn-primary">
+        Ver clases disponibles
+      </a>
+    </div>
+
+    <div *ngFor="let reserva of reservasFiltradas" class="booking-card">
+      <div class="booking-fecha">
+        <span class="dia">{{ reserva.fecha | date:'dd' }}</span>
+        <span class="mes">{{ reserva.fecha | date:'MMM' }}</span>
+      </div>
+
+      <div class="booking-info">
+        <h3>Pilates con {{ reserva.instructor }}</h3>
+        <div class="booking-meta">
+          <span>
+            <span class="material-icons">schedule</span>
+            {{ reserva.fecha | date:'HH:mm' }} ({{ reserva.duracion }} min)
+          </span>
+          <span>
+            <span class="material-icons">event</span>
+            {{ reserva.fecha | date:'fullDate' }}
+          </span>
+        </div>
+        <div class="booking-estado" [ngClass]="getEstadoClase(reserva).clase">
+          {{ getEstadoClase(reserva).texto }}
+        </div>
+      </div>
+
+      <div class="booking-actions" *ngIf="reserva.puedeCancelar">
+        <button class="btn-cancel" (click)="cancelarReserva(reserva)" title="Cancelar reserva">
+          <span class="material-icons">cancel</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Paginación simple -->
+    <div *ngIf="reservasFiltradas.length > 0" class="pagination-info">
+      <p>{{ reservasFiltradas.length }} {{ reservasFiltradas.length === 1 ? 'reserva' : 'reservas' }} encontradas</p>
+    </div>
+  </div>
+</div>

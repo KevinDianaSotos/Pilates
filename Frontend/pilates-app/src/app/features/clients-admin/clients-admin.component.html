@@ -1,0 +1,489 @@
+<div class="clients-container">
+  <!-- Header con título y acciones -->
+  <div class="page-header">
+    <div class="header-title">
+      <h1>Administración de Clientes</h1>
+      <p class="subtitle">Gestiona todos tus clientes, membresías y reservas</p>
+    </div>
+    <button class="btn-primary" (click)="openCreateModal()">
+      <span class="material-icons">add</span>
+      Nuevo Cliente
+    </button>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon total">👥</div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.total }}</span>
+        <span class="stat-label">Total Clientes</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon active">✓</div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.active }}</span>
+        <span class="stat-label">Activos</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon inactive">⏸️</div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.inactive }}</span>
+        <span class="stat-label">Inactivos</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon pending">⏳</div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.pending }}</span>
+        <span class="stat-label">Pendientes</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros y búsqueda -->
+  <div class="filters-section">
+    <div class="search-box">
+      <span class="material-icons search-icon">search</span>
+      <input 
+        type="text" 
+        placeholder="Buscar por nombre, email o teléfono..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="filterClients()"
+      >
+    </div>
+    
+    <div class="filter-tabs">
+      <button 
+        class="filter-btn" 
+        [class.active]="selectedFilter === 'all'"
+        (click)="selectedFilter = 'all'; filterClients()"
+      >
+        Todos
+      </button>
+      <button 
+        class="filter-btn" 
+        [class.active]="selectedFilter === 'active'"
+        (click)="selectedFilter = 'active'; filterClients()"
+      >
+        Activos
+      </button>
+      <button 
+        class="filter-btn" 
+        [class.active]="selectedFilter === 'inactive'"
+        (click)="selectedFilter = 'inactive'; filterClients()"
+      >
+        Inactivos
+      </button>
+      <button 
+        class="filter-btn" 
+        [class.active]="selectedFilter === 'pending'"
+        (click)="selectedFilter = 'pending'; filterClients()"
+      >
+        Pendientes
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabla de clientes -->
+  <div class="table-container">
+    <table class="clients-table">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Contacto</th>
+          <th>Membresía</th>
+          <th>Estado Pago</th>
+          <th>Estado</th>
+          <th>Clases</th>
+          <th>Última Visita</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let client of filteredClients" class="client-row">
+          <td>
+            <div class="client-info">
+              <div class="client-avatar">
+                {{ client.name.charAt(0) }}
+              </div>
+              <div class="client-details">
+                <span class="client-name">{{ client.name }}</span>
+                <span class="client-id">ID: {{ client.id | slice:0:8 }}...</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="contact-info">
+              <span class="contact-email">{{ client.email }}</span>
+              <span class="contact-phone">{{ client.phone }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="membership-type">{{ client.tarifa?.nombre || 'Sin tarifa' }}</span>
+          </td>
+          <td>
+            <span class="pago-badge" [ngClass]="{
+              'pago-al-dia': client.estadoPago === 'al_dia',
+              'pago-pendiente': client.estadoPago === 'pendiente',
+              'pago-vencido': client.estadoPago === 'vencido'
+            }">
+              <span class="pago-icon">
+                {{ client.estadoPago === 'al_dia' ? '✅' : (client.estadoPago === 'vencido' ? '⚠️' : '⏳') }}
+              </span>
+              {{ client.estadoPago === 'al_dia' ? 'Al día' : (client.estadoPago === 'vencido' ? 'Vencido' : 'Pendiente') }}
+            </span>
+            <span class="proximo-pago" *ngIf="client.fechaProximoPago">
+              Próx: {{ client.fechaProximoPago | date:'dd/MM/yyyy' }}
+            </span>
+          </td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusBadge(client.status)">
+              {{ getStatusText(client.status) }}
+            </span>
+          </td>
+          <td>
+            <span class="bookings-count">{{ client.totalBookings }}</span>
+          </td>
+          <td>
+            <span class="last-visit">{{ client.lastVisit ? (client.lastVisit | date:'dd/MM/yyyy') : 'Nunca' }}</span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-icon edit" (click)="openEditModal(client)" title="Editar">
+                <span class="material-icons">edit</span>
+              </button>
+              <button class="btn-icon delete" (click)="deleteClient(client.id)" title="Eliminar">
+                <span class="material-icons">delete</span>
+              </button>
+              <button class="btn-icon view" (click)="viewClientDetails(client)" title="Ver detalles">
+                <span class="material-icons">visibility</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filteredClients.length === 0">
+          <td colspan="7" class="no-results">
+            <div class="empty-state">
+              <span class="material-icons empty-icon">sentiment_dissatisfied</span>
+              <p>No se encontraron clientes</p>
+              <button class="btn-primary btn-small" (click)="openCreateModal()">
+                <span class="material-icons">add</span>
+                Crear primer cliente
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal de Detalles del Cliente -->
+  <div *ngIf="showDetailsModal && selectedClientDetails" class="modal-backdrop" (click)="closeDetailsModal()">
+    <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Detalles del Cliente</h3>
+        <button class="modal-close" (click)="closeDetailsModal()">×</button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Cabecera con avatar e información básica -->
+        <div class="client-profile-header">
+          <div class="profile-avatar">
+            {{ selectedClientDetails.name.charAt(0) }}
+          </div>
+          <div class="profile-info">
+            <h2>{{ selectedClientDetails.name }}</h2>
+            <p class="profile-email">{{ selectedClientDetails.email }}</p>
+            <div class="profile-meta">
+              <span class="status-badge" [ngClass]="getStatusBadge(selectedClientDetails.status)">
+                {{ getStatusText(selectedClientDetails.status) }}
+              </span>
+              <span class="client-id-badge">ID: {{ selectedClientDetails.id | slice:0:8 }}...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid de información -->
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-card-header">
+              <span class="material-icons">phone</span>
+              <h4>Contacto</h4>
+            </div>
+            <div class="info-card-content">
+              <p><strong>Teléfono:</strong> {{ selectedClientDetails.phone || 'No disponible' }}</p>
+              <p><strong>Email:</strong> {{ selectedClientDetails.email }}</p>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-card-header">
+              <span class="material-icons">subscriptions</span>
+              <h4>Membresía</h4>
+            </div>
+            <div class="info-card-content">
+              <p>
+                <strong>Tarifa:</strong> 
+                <span class="membership-badge">{{ selectedClientDetails.tarifa?.nombre || 'Sin tarifa' }}</span>
+              </p>
+              <p *ngIf="selectedClientDetails.tarifa">
+                <strong>Precio:</strong> {{ selectedClientDetails.tarifa.precio | currency:'EUR' }}
+              </p>
+              <p *ngIf="selectedClientDetails.tarifa">
+                <strong>Clases/mes:</strong> {{ selectedClientDetails.tarifa.maxClasesMes }}
+              </p>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-card-header">
+              <span class="material-icons">event</span>
+              <h4>Estadísticas</h4>
+            </div>
+            <div class="info-card-content">
+              <p><strong>Total clases:</strong> {{ selectedClientDetails.totalBookings }}</p>
+              <p><strong>Última visita:</strong> {{ selectedClientDetails.lastVisit ? (selectedClientDetails.lastVisit | date:'dd/MM/yyyy') : 'Nunca' }}</p>
+              <p><strong>Miembro desde:</strong> {{ selectedClientDetails.createdAt ? (selectedClientDetails.createdAt | date:'dd/MM/yyyy') : 'No disponible' }}</p>
+              <p *ngIf="selectedClientDetails.fechaBajaSolicitada">
+                <strong>Baja solicitada:</strong> {{ selectedClientDetails.fechaBajaSolicitada | date:'dd/MM/yyyy' }}
+              </p>
+              <p *ngIf="selectedClientDetails.fechaBajaEfectiva">
+                <strong>Baja efectiva:</strong> {{ selectedClientDetails.fechaBajaEfectiva | date:'dd/MM/yyyy' }}
+              </p>
+            </div>
+          </div>
+          <div class="info-card pago-card">
+            <div class="info-card-header">
+              <span class="material-icons">payments</span>
+              <h4>Información de Pago</h4>
+            </div>
+            <div class="info-card-content">
+              <!-- Estado de pago con badge -->
+              <p>
+                <strong>Estado:</strong> 
+                <span class="pago-badge" [ngClass]="{
+                  'pago-al-dia': selectedClientDetails.infoPago?.estadoPago === 'al_dia',
+                  'pago-pendiente': selectedClientDetails.infoPago?.estadoPago === 'pendiente',
+                  'pago-vencido': selectedClientDetails.infoPago?.estadoPago === 'vencido'
+                }">
+                  <span class="pago-icon">
+                    {{ selectedClientDetails.infoPago?.estadoPago === 'al_dia' ? '✅' : 
+                      (selectedClientDetails.infoPago?.estadoPago === 'vencido' ? '⚠️' : '⏳') }}
+                  </span>
+                  {{ selectedClientDetails.infoPago?.estadoPago === 'al_dia' ? 'Al día' : 
+                    (selectedClientDetails.infoPago?.estadoPago === 'vencido' ? 'Vencido' : 'Pendiente') }}
+                </span>
+              </p>
+
+              <!-- Fechas de pago -->
+              <p *ngIf="selectedClientDetails.infoPago?.fechaUltimoPago">
+                <strong>Último pago:</strong> 
+                {{ selectedClientDetails.infoPago?.fechaUltimoPago | date:'dd/MM/yyyy' }}
+              </p>
+              
+              <p *ngIf="selectedClientDetails.infoPago?.fechaProximoPago">
+                <strong>Próximo pago:</strong> 
+                <span [ngClass]="{'text-danger': selectedClientDetails.infoPago?.estadoPago === 'vencido'}">
+                  {{ selectedClientDetails.infoPago?.fechaProximoPago | date:'dd/MM/yyyy' }}
+                </span>
+              </p>
+
+              <!-- Último pago registrado (detalle) -->
+              <div *ngIf="selectedClientDetails.infoPago?.ultimoPago" class="ultimo-pago-detalle">
+                <p class="detalle-titulo">Último pago:</p>
+                <div class="detalle-grid">
+                  <span class="detalle-label">Cantidad:</span>
+                  <span class="detalle-valor">{{ selectedClientDetails.infoPago?.ultimoPago?.monto | currency:'EUR' }}</span>
+                  
+                  <span class="detalle-label">Fecha:</span>
+                  <span class="detalle-valor">{{ selectedClientDetails.infoPago?.ultimoPago?.fechaPago | date:'dd/MM/yyyy' }}</span>
+                  
+                  <span class="detalle-label">Método:</span>
+                  <span class="detalle-valor">{{ selectedClientDetails.infoPago?.ultimoPago?.metodoPago }}</span>
+                  
+                  <span class="detalle-label">Período:</span>
+                  <span class="detalle-valor">{{ selectedClientDetails.infoPago?.ultimoPago?.periodo }}</span>
+                </div>
+              </div>
+
+              <div *ngIf="!selectedClientDetails.infoPago?.ultimoPago" class="no-pagos">
+                <span class="material-icons">info</span>
+                <p>No hay pagos registrados</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Historial de reservas -->
+        <div class="bookings-section">
+          <h4>Historial de reservas</h4>
+          
+          <div class="bookings-list" *ngIf="selectedClientDetails.bookings && selectedClientDetails.bookings.length > 0">
+            <div class="booking-item" *ngFor="let booking of selectedClientDetails.bookings">
+              <div class="booking-info">
+                <span class="booking-date">{{ booking.date | date:'dd/MM/yyyy' }}</span>
+                <span class="booking-time">{{ booking.date | date:'HH:mm' }}</span>
+                <span class="booking-class">{{ booking.className }}</span>
+              </div>
+              <span class="booking-attended" [class.attended]="booking.attended">
+                {{ booking.attended ? 'Asistió' : 'No asistió' }}
+              </span>
+            </div>
+          </div>
+          
+          <div *ngIf="!selectedClientDetails.bookings || selectedClientDetails.bookings.length === 0" class="no-bookings">
+            <span class="material-icons">event_busy</span>
+            <p>No hay reservas para este cliente</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Acciones del modal -->
+      <div class="modal-actions">
+        <button class="btn-primary" (click)="openEditModalFromDetails(selectedClientDetails)">
+          <span class="material-icons">edit</span>
+          Editar
+        </button>
+        
+        <button *ngIf="selectedClientDetails.status === 'active'" 
+                class="btn-warning" (click)="solicitarBaja(selectedClientDetails)">
+          <span class="material-icons">person_off</span>
+          Solicitar Baja
+        </button>
+        
+        <button *ngIf="selectedClientDetails?.fechaBajaSolicitada && !selectedClientDetails?.fechaBajaEfectiva" 
+                class="btn-success" (click)="reactivarCliente(selectedClientDetails)">
+          <span class="material-icons">person_add</span>
+          Reactivar
+        </button>
+        
+        
+        <button class="btn-success" (click)="registrarPago(selectedClientDetails)">
+          <span class="material-icons">payments</span>
+          Registrar Pago
+        </button>
+
+        <button class="btn-secondary" (click)="closeDetailsModal()">
+          <span class="material-icons">close</span>
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Edición/Creación de Cliente -->
+  <div *ngIf="showModal" class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ isEditMode ? 'Editar Cliente' : 'Nuevo Cliente' }}</h3>
+        <button class="modal-close" (click)="closeModal()">×</button>
+      </div>
+
+      <form (ngSubmit)="saveClient()" class="modal-form">
+        <!-- Nombre -->
+        <div class="form-group">
+          <label for="name">Nombre completo</label>
+          <input 
+            type="text" 
+            id="name"
+            [(ngModel)]="formData.name" 
+            name="name"
+            placeholder="Ej: Juan Pérez"
+            required
+          >
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input 
+            type="email" 
+            id="email"
+            [(ngModel)]="formData.email" 
+            name="email"
+            placeholder="cliente@email.com"
+            required
+          >
+        </div>
+
+        <!-- Teléfono -->
+        <div class="form-group">
+          <label for="phone">Teléfono</label>
+          <input 
+            type="tel" 
+            id="phone"
+            [(ngModel)]="formData.phone" 
+            name="phone"
+            placeholder="+34 123 456 789"
+            required
+          >
+        </div>
+
+        <!-- Tarifa -->
+        <div class="form-group">
+          <label for="tarifa">Tarifa / Membresía</label>
+          <select 
+            id="tarifa"
+            [(ngModel)]="formData.tarifaId" 
+            name="tarifaId"
+          >
+            <option [ngValue]="null">Sin tarifa</option>
+            <option *ngFor="let tarifa of tarifas" [ngValue]="tarifa.id">
+              {{ tarifa.nombre }} - {{ tarifa.precio | currency:'EUR' }} ({{ tarifa.maxClasesMes }} clases/mes)
+            </option>
+          </select>
+        </div>
+
+        <!-- Contraseña -->
+        <div class="form-group" *ngIf="!isEditMode">
+          <label for="password">Contraseña</label>
+          <input 
+            type="password" 
+            id="password"
+            [(ngModel)]="formData.password" 
+            name="password"
+            placeholder="********"
+            [required]="!isEditMode"
+          >
+        </div>
+
+        <div class="form-group" *ngIf="isEditMode">
+          <label for="password">Nueva contraseña (dejar en blanco para no cambiar)</label>
+          <input 
+            type="password" 
+            id="password"
+            [(ngModel)]="formData.password" 
+            name="password"
+            placeholder="********"
+          >
+        </div>
+
+        <!-- Información adicional en modo edición -->
+        <div *ngIf="isEditMode && selectedClient" class="info-box">
+          <p><strong>Estado actual:</strong> {{ getStatusText(selectedClient.status) }}</p>
+          <p><strong>Clases realizadas:</strong> {{ selectedClient.totalBookings }}</p>
+          <p *ngIf="selectedClient.fechaBajaSolicitada"><strong>Baja solicitada:</strong> {{ selectedClient.fechaBajaSolicitada | date:'dd/MM/yyyy' }}</p>
+        </div>
+
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary" [disabled]="isLoading">
+            <span *ngIf="!isLoading">{{ isEditMode ? 'Actualizar' : 'Crear' }} Cliente</span>
+            <span *ngIf="isLoading" class="spinner-small"></span>
+          </button>
+          <button type="button" class="btn-secondary" (click)="closeModal()">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Cargando clientes...</p>
+  </div>
+</div>

@@ -1,0 +1,44 @@
+.page-header {
+  margin-bottom: 2rem;
+  h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+  p { color: var(--text-muted); }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--surface);
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+
+  .label { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+  .value { font-size: 2rem; font-weight: 700; color: var(--primary); }
+  .trend {
+    font-size: 0.8rem; margin-top: 1rem; font-weight: 500;
+    &.pos { color: #2d6a4f; }
+  }
+}
+
+.main-table-card {
+  background: var(--surface);
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  min-height: 200px;
+}
+
+.stat-card {
+  transition: transform 0.2s ease;
+  &:hover {
+    transform: translateY(-4px); // Efecto sutil al pasar el ratón
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+  }
+}

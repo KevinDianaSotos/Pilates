@@ -1,0 +1,20 @@
+:root {
+  --primary: #4A5D54;
+  --secondary: #D4A373;
+  --bg-body: #F9F9F7;
+  --surface: #FFFFFF;
+  --text-main: #2C2C2C;
+  --text-muted: #787878;
+  --sidebar-width: 260px;
+  --header-height: 72px;
+  --radius: 12px;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--bg-body);
+  color: var(--text-main);
+}

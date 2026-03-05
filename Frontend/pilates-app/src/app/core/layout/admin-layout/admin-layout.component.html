@@ -1,0 +1,20 @@
+<div class="admin-wrapper">
+  <app-sidebar 
+    [isOpen]="isSidebarOpen" 
+    (closeSidebar)="isSidebarOpen = false">
+  </app-sidebar>
+
+  <div 
+    class="mobile-overlay" 
+    [class.active]="isSidebarOpen" 
+    (click)="isSidebarOpen = false">
+  </div>
+
+  <div class="main-canvas">
+    <app-header (toggleMenu)="isSidebarOpen = !isSidebarOpen"></app-header>
+
+    <main class="page-container">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

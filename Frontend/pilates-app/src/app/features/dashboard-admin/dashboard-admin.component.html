@@ -1,0 +1,33 @@
+<div class="dashboard-container">
+  <header class="page-header">
+    <h1>Resumen de este mes</h1>
+    <p *ngIf="!loading && stats">Estadísticas actualizadas</p>
+    <p *ngIf="loading">Cargando...</p>
+    <p *ngIf="error">{{ error }}</p>
+  </header>
+
+  <div class="stats-grid" *ngIf="stats">
+    <div class="stat-card">
+      <span class="label">Alumnos este mes</span>
+      <span class="value">{{ stats.alumnosMes }}</span>
+      <span class="trend pos">Media: {{ stats.avgAlumnos }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="label">Clases impartidas</span>
+      <span class="value">{{ stats.clasesMes }}</span>
+      <span class="trend pos">Media: {{ stats.avgClases }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="label">Ingresos del mes</span>
+      <span class="value">€{{ stats.ingresosMes }}</span>
+      <span class="trend pos">Media: €{{ stats.avgIngresos }}</span>
+    </div>
+  </div>
+
+  <div class="content-row">
+   <div class="main-table-card">
+      <h3>Calendario de Clases</h3>
+      <app-calendar></app-calendar>
+    </div>
+  </div>
+</div>
