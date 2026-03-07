@@ -4,19 +4,29 @@ using Microsoft.IdentityModel.Tokens;
 using Pilates.Api.Infrastructure.Data;
 using Pilates.Api.Services;
 using System.Text;
-using Npgsql; // 👈 Asegúrate de tener este using
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// CORS
+// Configurar puerto para Railway (importante)
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(int.Parse(port));
+});
+
+// CORS para producción (permitir tu frontend de Netlify)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        policy.WithOrigins(
+            "http://localhost:4200",
+            "https://pilatesappstudios.netlify.app"  // 👈 Tu frontend en Netlify
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
     });
 });
 
@@ -25,19 +35,34 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// 👇 CONFIGURACIÓN CORREGIDA PARA POSTGRESQL CON UTC
+// Configuración para PostgreSQL con UTC
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
 
 // Database context con opciones UTC
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    // Usar variable de entorno para Railway o connection string por defecto
+    var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+                           ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
-    // Agregar Timezone=UTC a la connection string si no existe
-    if (!connectionString.Contains("Timezone"))
+    // Para Railway, convertir DATABASE_URL a formato Npgsql
+    if (connectionString?.StartsWith("postgresql://") == true)
     {
-        connectionString += connectionString.EndsWith(";") ? "Timezone=UTC;" : ";Timezone=UTC;";
+        var uri = new Uri(connectionString);
+        var userInfo = uri.UserInfo.Split(':');
+        var username = userInfo[0];
+        var password = userInfo.Length > 1 ? userInfo[1] : "";
+
+        connectionString = $"Host={uri.Host};Database={uri.AbsolutePath.TrimStart('/')};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;Timezone=UTC";
+    }
+    else
+    {
+        // Agregar Timezone=UTC a la connection string si no existe
+        if (!connectionString.Contains("Timezone"))
+        {
+            connectionString += connectionString.EndsWith(";") ? "Timezone=UTC;" : ";Timezone=UTC;";
+        }
     }
 
     options.UseNpgsql(connectionString, npgsqlOptions =>
@@ -58,7 +83,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = false,
             ValidateLifetime = true,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+                Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")
+                                       ?? builder.Configuration["Jwt:Key"]!)
             )
         };
     });
@@ -69,10 +95,20 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// Ejecutar migraciones automáticamente al iniciar (IMPORTANTE para Railway)
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    // dbContext.Database.EnsureCreated(); // opcional
+    try
+    {
+        Console.WriteLine("🔄 Aplicando migraciones...");
+        dbContext.Database.Migrate();
+        Console.WriteLine("✅ Migraciones aplicadas correctamente");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error aplicando migraciones: {ex.Message}");
+    }
 }
 
 // Configure the HTTP request pipeline.
@@ -87,6 +123,14 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Health check endpoint (útil para Railway)
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "healthy",
+    timestamp = DateTime.UtcNow,
+    environment = app.Environment.EnvironmentName
+}));
 
 // ✅ ÚNICO bloque de ApplicationStarted con todos los timers
 app.Lifetime.ApplicationStarted.Register(() =>

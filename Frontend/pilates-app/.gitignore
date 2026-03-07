@@ -47,11 +47,6 @@ dist/
 tmp/
 out-tsc/
 
-# Environment files
-src/environments/environment.ts
-src/environments/environment.prod.ts
-!src/environments/environment.example.ts
-
 # IDEs
 .vscode/
 .idea/
@@ -61,3 +56,4 @@ src/environments/environment.prod.ts
 # Logs
 npm-debug.log
 yarn-error.log
+.vercel
