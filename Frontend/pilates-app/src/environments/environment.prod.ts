@@ -1,4 +1,4 @@
 export const environment = {
-  production: false,
-  apiUrl: 'https://localhost:7223/api'
+  production: true,
+  apiUrl: 'https://tender-love-production.up.railway.app/api'
 };
