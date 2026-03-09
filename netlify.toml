@@ -1,0 +1,12 @@
+[build]
+  base = "Frontend/pilates-app"
+  publish = "dist/pilates-app"
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
