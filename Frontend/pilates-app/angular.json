@@ -41,7 +41,8 @@
               "assets": [
                 "src/favicon.ico",
                 "src/assets",
-                "src/manifest.webmanifest"
+                "src/manifest.webmanifest",
+                "src/manifest-pwa.webmanifest"
               ],
               "optimization": true,
               "sourceMap": false,

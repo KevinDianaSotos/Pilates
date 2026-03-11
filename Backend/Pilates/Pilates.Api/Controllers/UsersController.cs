@@ -64,7 +64,8 @@ public class UsersController : ControllerBase
                 .OrderBy(u => u.Name)
                 .ToListAsync();
 
-            var result = clientes.Select(u => {
+            var result = clientes.Select(u =>
+            {
                 // Obtener el último pago para información adicional si es necesario
                 var ultimoPago = u.Pagos?
                     .OrderByDescending(p => p.FechaPago)
@@ -655,40 +656,389 @@ public class UsersController : ControllerBase
             return StatusCode(500, new { message = "Error al cambiar contraseña", error = ex.Message });
         }
     }
-}
-// DTOs para perfil
-public class UpdatePerfilDto
-{
-    public string Name { get; set; } = null!;
-    public string Email { get; set; } = null!;
-    public string Phone { get; set; } = null!;
-}
 
-public class CambiarPasswordDto
-{
-    public string PasswordActual { get; set; } = null!;
-    public string PasswordNueva { get; set; } = null!;
-    public string ConfirmPassword { get; set; } = null!;
-}
 
-// DTOs
-public class CreateClienteDto
-{
-    public string Name { get; set; } = null!;
-    public string Email { get; set; } = null!;
-    public string Phone { get; set; } = null!;
-    public string Password { get; set; } = null!;
-    public Guid? TarifaId { get; set; }
-}
+    // GET: api/users/instructores (obtener todos los instructores)
+    [HttpGet("instructores")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetInstructores()
+    {
+        try
+        {
+            var instructores = await _context.Users
+                .Where(u => u.Role == UserRole.Admin)
+                .OrderBy(u => u.Name)
+                .Select(u => new
+                {
+                    u.Id,
+                    u.Name,
+                    u.Email,
+                    u.Phone,
+                    Activo = u.Status == "active", // Mapeamos Status a Activo
+                    u.CreatedAt
+                })
+                .ToListAsync();
 
-public class UpdateClienteDto
-{
-    public string Name { get; set; } = null!;
-    public string Email { get; set; } = null!;
-    public string Phone { get; set; } = null!;
+            return Ok(instructores);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Error al obtener instructores", error = ex.Message });
+        }
+    }
 
-    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
-    public string? Password { get; set; }
+    // GET: api/users/instructores/{id}
+    [HttpGet("instructores/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetInstructorById(Guid id)
+    {
+        try
+        {
+            var instructor = await _context.Users
+                .Where(u => u.Role == UserRole.Admin && u.Id == id)
+                .Select(u => new
+                {
+                    u.Id,
+                    u.Name,
+                    u.Email,
+                    u.Phone,
+                    Activo = u.Status == "active",
+                    u.CreatedAt
+                })
+                .FirstOrDefaultAsync();
 
-    public Guid? TarifaId { get; set; }
+            if (instructor == null)
+                return NotFound(new { message = "Instructor no encontrado" });
+
+            return Ok(instructor);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Error al obtener instructor", error = ex.Message });
+        }
+    }
+
+    // POST: api/users/instructores (crear instructor)
+    [HttpPost("instructores")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> CreateInstructor([FromBody] CreateInstructorDto dto)
+    {
+        try
+        {
+            // Verificar si ya existe un usuario con el mismo email
+            var existingUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == dto.Email);
+
+            if (existingUser != null)
+                return BadRequest(new { message = "Ya existe un usuario con este email" });
+
+            var instructor = new User
+            {
+                Id = Guid.NewGuid(),
+                Name = dto.Name,
+                Email = dto.Email,
+                Phone = dto.Phone,
+                Role = UserRole.Admin, // Instructores son Admin
+                Status = "active", // Activo por defecto
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Users.Add(instructor);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                id = instructor.Id,
+                instructor.Name,
+                instructor.Email,
+                instructor.Phone,
+                Activo = true
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Error al crear instructor", error = ex.Message });
+        }
+    }
+
+    // PUT: api/users/instructores/{id}
+    [HttpPut("instructores/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateInstructor(Guid id, [FromBody] UpdateInstructorDto dto)
+    {
+        try
+        {
+            var instructor = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == id && u.Role == UserRole.Admin);
+
+            if (instructor == null)
+                return NotFound(new { message = "Instructor no encontrado" });
+
+            // Verificar si el email ya está siendo usado por otro usuario
+            if (!string.IsNullOrEmpty(dto.Email) && instructor.Email != dto.Email)
+            {
+                var existingUser = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Email == dto.Email && u.Id != id);
+
+                if (existingUser != null)
+                    return BadRequest(new { message = "Ya existe otro usuario con este email" });
+            }
+
+            if (!string.IsNullOrEmpty(dto.Name))
+                instructor.Name = dto.Name;
+
+            if (!string.IsNullOrEmpty(dto.Email))
+                instructor.Email = dto.Email;
+
+            if (!string.IsNullOrEmpty(dto.Phone))
+                instructor.Phone = dto.Phone;
+
+            if (dto.Activo.HasValue)
+                instructor.Status = dto.Activo.Value ? "active" : "inactive";
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                instructor.Id,
+                instructor.Name,
+                instructor.Email,
+                instructor.Phone,
+                Activo = instructor.Status == "active"
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Error al actualizar instructor", error = ex.Message });
+        }
+    }
+
+    // DELETE: api/users/instructores/{id}
+    [HttpDelete("instructores/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteInstructor(Guid id)
+    {
+        try
+        {
+            var instructor = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == id && u.Role == UserRole.Admin);
+
+            if (instructor == null)
+                return NotFound(new { message = "Instructor no encontrado" });
+
+            _context.Users.Remove(instructor);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Instructor eliminado correctamente" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Error al eliminar instructor", error = ex.Message });
+        }
+    }
+
+    // PATCH: api/users/instructores/{id}/estado
+    [HttpPatch("instructores/{id}/estado")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ToggleInstructorEstado(Guid id, [FromBody] bool activo)
+    {
+        try
+        {
+            var instructor = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == id && u.Role == UserRole.Admin);
+
+            if (instructor == null)
+                return NotFound(new { message = "Instructor no encontrado" });
+
+            instructor.Status = activo ? "active" : "inactive";
+            await _context.SaveChangesAsync();
+
+            return Ok(new { id = instructor.Id, activo = instructor.Status == "active" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Error al cambiar estado", error = ex.Message });
+        }
+    }
+
+    // GET: api/users/perfil-admin
+    [HttpGet("perfil-admin")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetMiPerfilAdmin()
+    {
+        try
+        {
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var usuario = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (usuario == null)
+                return NotFound(new { message = "Usuario no encontrado" });
+
+            var result = new
+            {
+                usuario.Id,
+                usuario.Name,
+                usuario.Email,
+                usuario.Phone,
+                Role = usuario.Role.ToString(),
+                Status = usuario.Status,
+                FechaRegistro = usuario.CreatedAt
+            };
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Error al obtener perfil", error = ex.Message });
+        }
+    }
+
+    // PUT: api/users/perfil-admin
+    [HttpPut("perfil-admin")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ActualizarPerfilAdmin([FromBody] UpdateAdminPerfilDto dto)
+    {
+        try
+        {
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var usuario = await _context.Users.FindAsync(userId);
+
+            if (usuario == null)
+                return NotFound(new { message = "Usuario no encontrado" });
+
+            // Verificar si el email ya está siendo usado por otro usuario
+            if (usuario.Email != dto.Email)
+            {
+                var existingUser = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Email == dto.Email && u.Id != userId);
+
+                if (existingUser != null)
+                    return BadRequest(new { message = "El email ya está registrado por otro usuario" });
+            }
+
+            // Actualizar solo los campos permitidos
+            usuario.Name = dto.Name ?? usuario.Name;
+            usuario.Email = dto.Email ?? usuario.Email;
+            usuario.Phone = dto.Phone ?? usuario.Phone;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Perfil actualizado correctamente",
+                usuario.Id,
+                usuario.Name,
+                usuario.Email,
+                usuario.Phone
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Error al actualizar perfil", error = ex.Message });
+        }
+    }
+
+    // POST: api/users/perfil-admin/cambiar-password
+    [HttpPost("perfil-admin/cambiar-password")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> CambiarPasswordAdmin([FromBody] CambiarPasswordAdminDto dto)
+    {
+        try
+        {
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var usuario = await _context.Users.FindAsync(userId);
+
+            if (usuario == null)
+                return NotFound(new { message = "Usuario no encontrado" });
+
+            // Verificar contraseña actual
+            if (!BCrypt.Net.BCrypt.Verify(dto.PasswordActual, usuario.PasswordHash))
+                return BadRequest(new { message = "La contraseña actual no es correcta" });
+
+            // Verificar que la nueva contraseña y la confirmación coinciden
+            if (dto.PasswordNueva != dto.ConfirmPassword)
+                return BadRequest(new { message = "Las contraseñas no coinciden" });
+
+            // Actualizar contraseña
+            usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.PasswordNueva);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Contraseña actualizada correctamente" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Error al cambiar contraseña", error = ex.Message });
+        }
+    }
+
+    // DTOs para perfil
+    public class UpdatePerfilDto
+    {
+        public string Name { get; set; } = null!;
+        public string Email { get; set; } = null!;
+        public string Phone { get; set; } = null!;
+    }
+
+    public class CambiarPasswordDto
+    {
+        public string PasswordActual { get; set; } = null!;
+        public string PasswordNueva { get; set; } = null!;
+        public string ConfirmPassword { get; set; } = null!;
+    }
+
+    // DTOs
+    public class CreateClienteDto
+    {
+        public string Name { get; set; } = null!;
+        public string Email { get; set; } = null!;
+        public string Phone { get; set; } = null!;
+        public string Password { get; set; } = null!;
+        public Guid? TarifaId { get; set; }
+    }
+
+    public class UpdateClienteDto
+    {
+        public string Name { get; set; } = null!;
+        public string Email { get; set; } = null!;
+        public string Phone { get; set; } = null!;
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? Password { get; set; }
+
+        public Guid? TarifaId { get; set; }
+    }
+    public class CreateInstructorDto
+    {
+        public string Name { get; set; } = null!;
+        public string Email { get; set; } = null!;
+        public string Phone { get; set; } = null!;
+        public string Password { get; set; } = null!;
+    }
+
+    public class UpdateInstructorDto
+    {
+        public string? Name { get; set; }
+        public string? Email { get; set; }
+        public string? Phone { get; set; }
+        public bool? Activo { get; set; }
+    }
+
+    public class UpdateAdminPerfilDto
+    {
+        public string? Name { get; set; }
+        public string? Email { get; set; }
+        public string? Phone { get; set; }
+    }
+
+    public class CambiarPasswordAdminDto
+    {
+        public string PasswordActual { get; set; } = null!;
+        public string PasswordNueva { get; set; } = null!;
+        public string ConfirmPassword { get; set; } = null!;
+    }
 }

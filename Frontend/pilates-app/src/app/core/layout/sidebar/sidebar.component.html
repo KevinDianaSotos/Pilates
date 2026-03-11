@@ -14,13 +14,13 @@
 
 
     <!-- Dashboard -->
-    <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-link" (click)="onClose()">
+    <a *ngIf="isSuperAdmin" routerLink="/admin/dashboard" routerLinkActive="active" class="nav-link" (click)="onClose()">
       <span class="material-icons">dashboard</span> 
       <span class="label">Dashboard</span>
     </a>
 
     <!-- Clientes -->
-    <a routerLink="/admin/clientes" routerLinkActive="active" class="nav-link" (click)="onClose()">
+    <a *ngIf="isSuperAdmin" routerLink="/admin/clientes" routerLinkActive="active" class="nav-link" (click)="onClose()">
       <span class="material-icons">groups</span>
       <span class="label">Usuarios</span>
     </a>
@@ -29,6 +29,11 @@
     <a *ngIf="isSuperAdmin" routerLink="/admin/tarifas" routerLinkActive="active" class="nav-link" (click)="onClose()">
       <span class="material-icons">payments</span>
       <span class="label">Pagos Y Planes</span>
+    </a>
+
+    <a *ngIf="isSuperAdmin" routerLink="/admin/instructores" routerLinkActive="active" class="nav-link" (click)="onClose()">
+      <span class="material-icons">people</span>
+      <span class="label">Instructores</span>
     </a>
 
   </nav>

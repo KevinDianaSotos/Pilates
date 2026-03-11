@@ -8,6 +8,7 @@ interface UserMe {
   name: string;
   email: string;
   role: string;
+  phone: string;
 }
 
 @Injectable({

@@ -1,0 +1,66 @@
+<!-- Banner principal - SOLO por tamaño de pantalla -->
+<div class="install-banner" *ngIf="isMobile && showBanner && canInstall">
+  <div class="banner-content">
+    <!-- Icono -->
+    <div class="banner-icon">
+      <span class="material-icons">download</span>
+    </div>
+
+    <!-- Texto genérico (sin distinguir plataforma) -->
+    <div class="banner-text">
+      <strong>Instala StudiosRyM</strong>
+      <span>Acceso directo desde tu móvil</span>
+    </div>
+
+    <!-- Botones -->
+    <div class="banner-actions">
+      <button class="btn-install" (click)="install()">
+        Instalar
+      </button>
+      <button class="btn-close" (click)="close()" aria-label="Cerrar">
+        ✕
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de instrucciones para iOS -->
+<div class="ios-modal-overlay" *ngIf="showIOSModal" (click)="closeIOSModal()">
+  <div class="ios-modal" (click)="$event.stopPropagation()">
+    <div class="ios-modal-header">
+      <span class="material-icons">ios_share</span>
+      <h3>Instalar en iPhone</h3>
+      <button class="ios-modal-close" (click)="closeIOSModal()">✕</button>
+    </div>
+    
+    <div class="ios-modal-body">
+      <div class="ios-step">
+        <div class="ios-step-number">1</div>
+        <div class="ios-step-content">
+          <strong>Toca el botón Compartir</strong>
+          <span>Está en la barra inferior de Safari</span>
+        </div>
+      </div>
+      
+      <div class="ios-step">
+        <div class="ios-step-number">2</div>
+        <div class="ios-step-content">
+          <strong>Selecciona "Añadir a pantalla de inicio"</strong>
+          <span>Desplázate hacia abajo en el menú</span>
+        </div>
+      </div>
+      
+      <div class="ios-step">
+        <div class="ios-step-number">3</div>
+        <div class="ios-step-content">
+          <strong>Confirma con "Añadir"</strong>
+          <span>La app aparecerá en tu pantalla de inicio</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="ios-modal-footer">
+      <button class="ios-modal-btn" (click)="closeIOSModal()">Entendido</button>
+    </div>
+  </div>
+</div>

@@ -1,6 +1,6 @@
 [build]
-  base = "frontend/pilates-app"
-  publish = "dist/pilates-app"
+  base = ""
+  publish = "dist/pilates-app/browser"
   command = "npm run build"
 
 [build.environment]

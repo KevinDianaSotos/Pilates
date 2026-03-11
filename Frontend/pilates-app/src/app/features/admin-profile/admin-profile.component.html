@@ -1,0 +1,148 @@
+<!-- src/app/features/admin-profile/admin-profile.component.html -->
+<div class="profile-container">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>Mi Perfil</h1>
+    <p class="subtitle">Gestiona tu información personal</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading && !user" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando perfil...</p>
+  </div>
+
+  <!-- Profile Card -->
+  <div *ngIf="user && !isLoading" class="profile-card">
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="profile-avatar">
+        <!-- 👇 CORREGIDO: user.name.charAt(0) sin ?. -->
+        {{ user.name.charAt(0) || 'A' }}
+      </div>
+      <div class="profile-title">
+        <h2>{{ user.name }}</h2>
+        <p>{{ user.email }}</p>
+      </div>
+      <div class="profile-actions">
+        <button *ngIf="!isEditing && !changingPassword" class="btn-edit" (click)="toggleEdit()">
+          <span class="material-icons">edit</span>
+          Editar perfil
+        </button>
+        <button *ngIf="!isEditing && !changingPassword" class="btn-password" (click)="togglePassword()">
+          <span class="material-icons">lock</span>
+          Cambiar contraseña
+        </button>
+      </div>
+    </div>
+
+    <!-- Profile Body -->
+    <div class="profile-body">
+      <!-- View Mode -->
+      <div *ngIf="!isEditing && !changingPassword" class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Nombre completo</span>
+          <span class="info-value">{{ user.name }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Email</span>
+          <span class="info-value">{{ user.email }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Teléfono</span>
+          <span class="info-value">{{ user.phone || 'No especificado' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Rol</span>
+          <span class="info-value">{{ user.role || 'Admin' }}</span>
+        </div>
+      </div>
+
+      <!-- Edit Mode -->
+      <div *ngIf="isEditing" class="edit-form">
+        <div class="form-group">
+          <label for="name">Nombre completo</label>
+          <input 
+            type="text" 
+            id="name"
+            [(ngModel)]="profileForm.name"
+            placeholder="Tu nombre completo"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input 
+            type="email" 
+            id="email"
+            [(ngModel)]="profileForm.email"
+            placeholder="tu@email.com"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Teléfono</label>
+          <input 
+            type="tel" 
+            id="phone"
+            [(ngModel)]="profileForm.phone"
+            placeholder="+34 123 456 789"
+          >
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-save" (click)="saveProfile()" [disabled]="isLoading">
+            <span *ngIf="!isLoading">Guardar cambios</span>
+            <span *ngIf="isLoading" class="spinner-small"></span>
+          </button>
+          <button class="btn-cancel" (click)="toggleEdit()">
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <!-- Password Mode -->
+      <div *ngIf="changingPassword" class="password-form">
+        <div class="form-group">
+          <label for="currentPassword">Contraseña actual</label>
+          <input 
+            type="password" 
+            id="currentPassword"
+            [(ngModel)]="passwordForm.currentPassword"
+            placeholder="********"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="newPassword">Nueva contraseña</label>
+          <input 
+            type="password" 
+            id="newPassword"
+            [(ngModel)]="passwordForm.newPassword"
+            placeholder="********"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirmar contraseña</label>
+          <input 
+            type="password" 
+            id="confirmPassword"
+            [(ngModel)]="passwordForm.confirmPassword"
+            placeholder="********"
+          >
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-save" (click)="changePassword()" [disabled]="isLoading">
+            <span *ngIf="!isLoading">Cambiar contraseña</span>
+            <span *ngIf="isLoading" class="spinner-small"></span>
+          </button>
+          <button class="btn-cancel" (click)="togglePassword()">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

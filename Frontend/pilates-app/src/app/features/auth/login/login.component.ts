@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../../core/services/auth.service';
+import { InstallBannerComponent } from '../../../shared/components/install-banner/install-banner.component';
 
 @Component({
   selector: 'app-login',
@@ -17,16 +18,17 @@ import { AuthService } from '../../../core/services/auth.service';
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule
+    MatButtonModule,
+    InstallBannerComponent
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
-
+export class LoginComponent implements OnInit, OnDestroy {
   loginForm: FormGroup;
   loading = false;
   error: string | null = null;
+  isMobile = false;
 
   constructor(
     private fb: FormBuilder,
@@ -39,6 +41,19 @@ export class LoginComponent {
     });
   }
 
+  ngOnInit() {
+    this.checkScreenSize();
+    window.addEventListener('resize', this.checkScreenSize.bind(this));
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener('resize', this.checkScreenSize.bind(this));
+  }
+
+  checkScreenSize() {
+    this.isMobile = window.innerWidth <= 768;
+  }
+
   onSubmit() {
     if (this.loginForm.invalid) return;
 
@@ -48,7 +63,6 @@ export class LoginComponent {
 
     this.auth.login(email, password).subscribe({
       next: () => {
-        // Después del login cargamos el usuario real
         this.auth.loadCurrentUser().subscribe({
           next: (user) => {
             this.loading = false;

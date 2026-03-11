@@ -13,7 +13,10 @@ import { RoleGuard } from '../app/core/guards/role.guard';
 
 export const appRoutes: Routes = [
 
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { 
+    path: '', 
+    loadComponent: () => import('./features/landing/landing.component').then(m => m.LandingComponent) 
+  },
 
   { path: 'login', component: LoginComponent },
 
@@ -35,6 +38,14 @@ export const appRoutes: Routes = [
       {
         path: 'tarifas',
         loadComponent: () => import('../app/features/tarifas/tarifas.component').then(m => m.TarifasComponent)
+      },
+      {
+        path: 'instructores',
+        loadComponent: () => import('./features/instructors/instructors.component').then(m => m.InstructorsComponent)
+      },
+      {
+        path: 'perfil',
+        loadComponent: () => import('./features/admin-profile/admin-profile.component').then(m => m.AdminProfileComponent)
       },
       {
         path: '',

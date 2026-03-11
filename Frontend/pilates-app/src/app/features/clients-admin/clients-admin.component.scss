@@ -552,7 +552,8 @@
 
   @media (max-width: 480px) {
     padding: 0.5rem;
-    align-items: flex-end;
+    padding: .5rem;
+    justify-content: normal;
   }
 }
 
@@ -560,7 +561,7 @@
   background: white;
   border-radius: 1rem;
   width: 500px;
-  max-width: 100%;
+  max-width: 90%;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
@@ -568,14 +569,14 @@
 
   @media (max-width: 480px) {
     width: 100%;
-    border-radius: 1rem 1rem 0 0;
+    border-radius: 1rem ;
     max-height: 85vh;
     animation: slideUp 0.3s;
   }
 
   &.modal-lg {
     width: 800px;
-    max-width: 95%;
+    max-width: 90%;
   }
 
   .modal-header {

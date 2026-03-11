@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TarifasService, Tarifa } from '../../core/services/tarifas.service';
 import { ClientesService } from '../../core/services/clientes.service';
+import { DialogService } from '../../core/services/dialog.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -17,6 +18,7 @@ import { Subscription } from 'rxjs';
 export class TarifasComponent implements OnInit, OnDestroy {
   private tarifasService = inject(TarifasService);
   private clientesService = inject(ClientesService);
+  private dialogService = inject(DialogService);
   private subscriptions: Subscription = new Subscription();
 
   tarifas: Tarifa[] = [];
@@ -98,7 +100,6 @@ export class TarifasComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Contar cuántos clientes tienen cada tarifa
     const conteoTarifas = new Map<string, { nombre: string, count: number }>();
     
     clientes.forEach(cliente => {
@@ -115,7 +116,6 @@ export class TarifasComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Encontrar la tarifa con más clientes
     let maxCount = 0;
     let tarifaMasUsada = { nombre: 'N/A', count: 0 };
 
@@ -206,18 +206,35 @@ export class TarifasComponent implements OnInit, OnDestroy {
   }
 
   deleteTarifa(id: string) {
-    if (confirm('¿Estás seguro de eliminar esta tarifa?')) {
-      const sub = this.tarifasService.deleteTarifa(id).subscribe({
-        next: () => {
-          this.loadTarifas();
-        },
-        error: (error) => {
-          console.error('Error deleting tarifa:', error);
-          alert(error.error?.message || 'Error al eliminar la tarifa');
-        }
-      });
-      this.subscriptions.add(sub);
-    }
+    const tarifa = this.tarifas.find(t => t.id === id);
+    
+    this.dialogService.confirm({
+      title: 'Eliminar tarifa',
+      message: `¿Estás seguro de que quieres eliminar la tarifa "${tarifa?.nombre}"?\n\nEsta acción no se puede deshacer.`,
+      confirmText: 'Sí, eliminar',
+      cancelText: 'Cancelar',
+      type: 'danger'
+    }).subscribe(confirmed => {
+      if (confirmed) {
+        this.procesarEliminacion(id);
+      }
+    });
+  }
+
+  procesarEliminacion(id: string) {
+    this.isLoading = true;
+    const sub = this.tarifasService.deleteTarifa(id).subscribe({
+      next: () => {
+        this.loadTarifas();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error deleting tarifa:', error);
+        alert(error.error?.message || 'Error al eliminar la tarifa');
+        this.isLoading = false;
+      }
+    });
+    this.subscriptions.add(sub);
   }
 
   validateForm(): boolean {

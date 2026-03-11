@@ -1,0 +1,202 @@
+<!-- src/app/features/instructors/instructors.component.html -->
+<div class="instructors-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-title">
+      <h1>Instructores</h1>
+      <p class="subtitle">Gestiona el equipo de instructores</p>
+    </div>
+    <button class="btn-primary" (click)="openCreateModal()">
+      <span class="material-icons">add</span>
+      Nuevo Instructor
+    </button>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon total">👥</div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.total }}</span>
+        <span class="stat-label">Total Instructores</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon active">✅</div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.activos }}</span>
+        <span class="stat-label">Activos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Box -->
+  <div class="search-section">
+    <div class="search-box">
+      <span class="material-icons search-icon">search</span>
+      <input 
+        type="text" 
+        placeholder="Buscar por nombre, email o especialidad..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="filterInstructores()"
+      >
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando instructores...</p>
+  </div>
+
+  <!-- Instructors Grid -->
+  <div *ngIf="!isLoading" class="instructors-grid">
+    <div *ngFor="let instructor of filteredInstructores" class="instructor-card">
+      <div class="card-header">
+        <div class="instructor-avatar">
+          {{ instructor.name.charAt(0) }}
+        </div>
+        <div class="instructor-info">
+          <h3>{{ instructor.name }}</h3>
+          <span class="instructor-email">{{ instructor.email }}</span>
+        </div>
+        <div class="card-actions">
+          <button class="btn-icon edit" (click)="openEditModal(instructor)" title="Editar">
+            <span class="material-icons">edit</span>
+          </button>
+          <button class="btn-icon delete" (click)="deleteInstructor(instructor.id)" title="Eliminar">
+            <span class="material-icons">delete</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="instructor-detail">
+          <span class="material-icons">phone</span>
+          <span>{{ instructor.phone }}</span>
+        </div>
+        <div class="instructor-detail" *ngIf="instructor.especialidad">
+          <span class="material-icons">fitness_center</span>
+          <span>{{ instructor.especialidad }}</span>
+        </div>
+        <div class="instructor-detail" *ngIf="instructor.bio">
+          <span class="material-icons">description</span>
+          <span>{{ instructor.bio | slice:0:100 }}{{ instructor.bio.length > 100 ? '...' : '' }}</span>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <label class="switch">
+          <input type="checkbox" [checked]="instructor.activo" (change)="toggleEstado(instructor)">
+          <span class="slider round"></span>
+        </label>
+        <span class="status-badge" [class.active]="instructor.activo">
+          {{ instructor.activo ? 'Activo' : 'Inactivo' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredInstructores.length === 0" class="empty-state">
+      <span class="material-icons empty-icon">person_off</span>
+      <h3>No hay instructores</h3>
+      <p>Comienza añadiendo el primer instructor</p>
+      <button class="btn-primary" (click)="openCreateModal()">
+        <span class="material-icons">add</span>
+        Añadir Instructor
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Crear/Editar Instructor -->
+<div *ngIf="showModal" class="modal-backdrop" (click)="closeModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ isEditMode ? 'Editar Instructor' : 'Nuevo Instructor' }}</h3>
+      <button class="modal-close" (click)="closeModal()">×</button>
+    </div>
+
+    <form (ngSubmit)="saveInstructor()" class="modal-form">
+      <div class="form-group">
+        <label for="name">Nombre completo</label>
+        <input 
+          type="text" 
+          id="name"
+          [(ngModel)]="formData.name" 
+          name="name" 
+          placeholder="Ej: Juan Pérez"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input 
+          type="email" 
+          id="email"
+          [(ngModel)]="formData.email" 
+          name="email" 
+          placeholder="instructor@email.com"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Teléfono</label>
+        <input 
+          type="tel" 
+          id="phone"
+          [(ngModel)]="formData.phone" 
+          name="phone" 
+          placeholder="+34 123 456 789"
+          required
+        >
+      </div>
+
+      <div class="form-group" *ngIf="!isEditMode">
+        <label for="password">Contraseña</label>
+        <input 
+          type="password" 
+          id="password"
+          [(ngModel)]="formData.password" 
+          name="password" 
+          placeholder="********"
+          [required]="!isEditMode"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="especialidad">Especialidad</label>
+        <input 
+          type="text" 
+          id="especialidad"
+          [(ngModel)]="formData.especialidad" 
+          name="especialidad" 
+          placeholder="Ej: Pilates, Nutrición, Yoga..."
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="bio">Biografía</label>
+        <textarea 
+          id="bio"
+          [(ngModel)]="formData.bio" 
+          name="bio" 
+          rows="3"
+          placeholder="Breve descripción del instructor..."
+        ></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button type="submit" class="btn-primary" [disabled]="isLoading">
+          <span *ngIf="!isLoading">{{ isEditMode ? 'Actualizar' : 'Crear' }} Instructor</span>
+          <span *ngIf="isLoading" class="spinner-small"></span>
+        </button>
+        <button type="button" class="btn-secondary" (click)="closeModal()">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
