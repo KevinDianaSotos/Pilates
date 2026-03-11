@@ -51,25 +51,64 @@ export class AdminProfileComponent implements OnInit, OnDestroy {
   }
 
   loadUserData() {
-    this.isLoading = true;
-    const sub = this.profileService.getProfile().subscribe({
-      next: (user) => {
-        this.user = user;
-        this.profileForm = {
-          name: user.name,
-          email: user.email,
-          phone: user.phone || ''
-        };
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error loading profile:', error);
-        this.notificationService.showError('Error al cargar el perfil');
-        this.isLoading = false;
-      }
-    });
-    this.subscriptions.add(sub);
-  }
+  this.isLoading = true;
+  const sub = this.profileService.getProfileAdmin().subscribe({ 
+    next: (user) => {
+      this.user = user;
+      this.profileForm = {
+        name: user.name,
+        email: user.email,
+        phone: user.phone || ''
+      };
+      this.isLoading = false;
+    },
+    error: (error) => {
+      console.error('Error loading profile:', error);
+      this.notificationService.showError('Error al cargar el perfil');
+      this.isLoading = false;
+    }
+  });
+  this.subscriptions.add(sub);
+}
+
+saveProfile() {
+  if (!this.validateProfileForm()) return;
+
+  this.isLoading = true;
+  
+  const sub = this.profileService.updateProfileAdmin(this.profileForm).subscribe({ // 👈 Cambiado
+    next: (updatedUser) => {
+      this.user = updatedUser;
+      this.notificationService.showSuccess('Perfil actualizado correctamente');
+      this.isEditing = false;
+      this.isLoading = false;
+    },
+    error: (error) => {
+      console.error('Error updating profile:', error);
+      this.notificationService.showError(error.error?.message || 'Error al actualizar el perfil');
+      this.isLoading = false;
+    }
+  });
+  this.subscriptions.add(sub);
+}
+
+procesarCambioPassword() {
+  this.isLoading = true;
+  
+  const sub = this.profileService.changePasswordAdmin(this.passwordForm).subscribe({ // 👈 Cambiado
+    next: () => {
+      this.notificationService.showSuccess('Contraseña cambiada correctamente');
+      this.togglePassword();
+      this.isLoading = false;
+    },
+    error: (error) => {
+      console.error('Error changing password:', error);
+      this.notificationService.showError(error.error?.message || 'Error al cambiar la contraseña');
+      this.isLoading = false;
+    }
+  });
+  this.subscriptions.add(sub);
+}
 
   toggleEdit() {
     this.isEditing = !this.isEditing;
@@ -94,26 +133,7 @@ export class AdminProfileComponent implements OnInit, OnDestroy {
     };
   }
 
-  saveProfile() {
-    if (!this.validateProfileForm()) return;
-
-    this.isLoading = true;
-    
-    const sub = this.profileService.updateProfile(this.profileForm).subscribe({
-      next: (updatedUser) => {
-        this.user = updatedUser;
-        this.notificationService.showSuccess('Perfil actualizado correctamente');
-        this.isEditing = false;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error updating profile:', error);
-        this.notificationService.showError(error.error?.message || 'Error al actualizar el perfil');
-        this.isLoading = false;
-      }
-    });
-    this.subscriptions.add(sub);
-  }
+  
 
   changePassword() {
     if (!this.validatePasswordForm()) return;
@@ -131,24 +151,7 @@ export class AdminProfileComponent implements OnInit, OnDestroy {
     });
   }
 
-  procesarCambioPassword() {
-    this.isLoading = true;
-    
-    const sub = this.profileService.changePassword(this.passwordForm).subscribe({
-      next: () => {
-        this.notificationService.showSuccess('Contraseña cambiada correctamente');
-        this.togglePassword();
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error changing password:', error);
-        this.notificationService.showError(error.error?.message || 'Error al cambiar la contraseña');
-        this.isLoading = false;
-      }
-    });
-    this.subscriptions.add(sub);
-  }
-
+ 
   validateProfileForm(): boolean {
     if (!this.profileForm.name?.trim()) {
       this.notificationService.showWarning('El nombre es requerido');

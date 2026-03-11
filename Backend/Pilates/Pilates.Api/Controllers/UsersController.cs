@@ -674,7 +674,7 @@ public class UsersController : ControllerBase
                     u.Name,
                     u.Email,
                     u.Phone,
-                    Activo = u.Status == "active", // Mapeamos Status a Activo
+                    Activo = u.Status != null && u.Status == "active",
                     u.CreatedAt
                 })
                 .ToListAsync();

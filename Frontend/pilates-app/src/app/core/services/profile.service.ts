@@ -30,20 +30,40 @@ export interface ChangePasswordDto {
 })
 export class ProfileService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/users/perfil`;
+  
+  // Para admin
+  private apiUrlAdmin = `${environment.apiUrl}/users/perfil-admin`;
+  
+  // Para clientes (si lo necesitas)
+  private apiUrlClient = `${environment.apiUrl}/users/perfil`;
 
-  // Obtener perfil del usuario actual
-  getProfile(): Observable<UserProfile> {
-    return this.http.get<UserProfile>(this.apiUrl);
+  // Obtener perfil del admin
+  getProfileAdmin(): Observable<UserProfile> {
+    return this.http.get<UserProfile>(this.apiUrlAdmin);
   }
 
-  // Actualizar perfil
-  updateProfile(data: UpdateProfileDto): Observable<UserProfile> {
-    return this.http.put<UserProfile>(this.apiUrl, data);
+  // Actualizar perfil del admin
+  updateProfileAdmin(data: UpdateProfileDto): Observable<UserProfile> {
+    return this.http.put<UserProfile>(this.apiUrlAdmin, data);
   }
 
-  // Cambiar contraseña
-  changePassword(data: ChangePasswordDto): Observable<{ message: string }> {
+  // Cambiar contraseña del admin
+  changePasswordAdmin(data: ChangePasswordDto): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${environment.apiUrl}/users/perfil-admin/cambiar-password`, data);
+  }
+
+  // Obtener perfil del cliente
+  getProfileClient(): Observable<UserProfile> {
+    return this.http.get<UserProfile>(this.apiUrlClient);
+  }
+
+  // Actualizar perfil del cliente
+  updateProfileClient(data: UpdateProfileDto): Observable<UserProfile> {
+    return this.http.put<UserProfile>(this.apiUrlClient, data);
+  }
+
+  // Cambiar contraseña del cliente
+  changePasswordClient(data: ChangePasswordDto): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${environment.apiUrl}/users/cambiar-password`, data);
   }
 
@@ -51,11 +71,6 @@ export class ProfileService {
   uploadFoto(file: File): Observable<{ fotoUrl: string }> {
     const formData = new FormData();
     formData.append('foto', file);
-    return this.http.post<{ fotoUrl: string }>(`${this.apiUrl}/foto`, formData);
-  }
-
-  // Eliminar cuenta (opcional)
-  deleteAccount(): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${environment.apiUrl}/users/eliminar-cuenta`);
+    return this.http.post<{ fotoUrl: string }>(`${environment.apiUrl}/users/perfil/foto`, formData);
   }
 }
