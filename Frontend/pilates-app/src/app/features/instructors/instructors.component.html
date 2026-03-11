@@ -165,29 +165,6 @@
           [required]="!isEditMode"
         >
       </div>
-
-      <div class="form-group">
-        <label for="especialidad">Especialidad</label>
-        <input 
-          type="text" 
-          id="especialidad"
-          [(ngModel)]="formData.especialidad" 
-          name="especialidad" 
-          placeholder="Ej: Pilates, Nutrición, Yoga..."
-        >
-      </div>
-
-      <div class="form-group">
-        <label for="bio">Biografía</label>
-        <textarea 
-          id="bio"
-          [(ngModel)]="formData.bio" 
-          name="bio" 
-          rows="3"
-          placeholder="Breve descripción del instructor..."
-        ></textarea>
-      </div>
-
       <div class="modal-actions">
         <button type="submit" class="btn-primary" [disabled]="isLoading">
           <span *ngIf="!isLoading">{{ isEditMode ? 'Actualizar' : 'Crear' }} Instructor</span>

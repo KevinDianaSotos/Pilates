@@ -21,7 +21,7 @@ namespace Pilates.Api.Controllers
         public async Task<IActionResult> GetInstructoresDisponibles()
         {
             var instructores = await _db.Users
-                .Where(u => u.Role == UserRole.Admin)
+                .Where(u => u.Role == UserRole.Admin && u.Status == "active")
                 .Select(u => new { u.Id, u.Name })
                 .ToListAsync();
 
